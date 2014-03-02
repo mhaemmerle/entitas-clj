@@ -1,14 +1,14 @@
-Clojure
+### Clojure
 
-    $ lein deps
     $ lein cljx
     $ lein run
 
 
-ClojureScript
+### ClojureScript
 
-    $ lein deps
     $ lein cljx
     $ lein cljsbuild once
+
+Open ```resources/public/index.html``` in your browser
 
     > entitas_clj.performance.main();
