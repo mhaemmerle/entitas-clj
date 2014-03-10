@@ -1,3 +1,5 @@
+[![Build Status](https://travis-ci.org/mhaemmerle/entitas-clj.png)](https://travis-ci.org/mhaemmerle/entitas-clj)
+
 ### Clojure
 
     $ lein cljx
