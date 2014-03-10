@@ -1,7 +1,7 @@
 (ns entitas-clj.entity
   (:require [clojure.set :refer [subset?]]))
 
-(defn new [id]
+(defn create [id]
   {:id id
    :creation-index nil
    :components {}

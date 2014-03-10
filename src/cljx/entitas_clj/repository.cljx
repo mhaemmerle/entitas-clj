@@ -3,7 +3,7 @@
             [entitas-clj.collection :as c]
             [entitas-clj.matcher :as m]))
 
-(defn new []
+(defn create []
   {:entities {}
    :collections {}
    :collections-for-type {}

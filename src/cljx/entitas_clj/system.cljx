@@ -1,14 +1,18 @@
 (ns entitas-clj.system
   (:refer-clojure :exclude [remove]))
 
-(defn new []
+;; system
+
+(defn create []
   [])
 
-(defn new-system []
+(defn create-system []
   {:active true
    :activate-fn nil
    :deactivate-fn nil
    :execute-fn nil})
+
+;; systems
 
 (defn add [systems system]
   (conj systems system))
