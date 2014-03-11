@@ -19,6 +19,7 @@
                            (update-in ,, [:current-index] inc))]
     [new-repository new-entity]))
 
+;; FIXME this also updates the collections in the ObjC version
 (defn remove-entity [repository entity]
   (update-in repository [:entities] dissoc (:creation-index entity)))
 
@@ -49,12 +50,10 @@
     [new-repository (c/entities collection)]))
 
 (defn collection-for-types [repository ctypes]
-  (let [mtype m/all-of-set
-        ;; huh?
-        mkey (m/to-key mtype ctypes)]
-    (collection-for-matcher repository {:mtype mtype :ctypes ctypes})))
+  (collection-for-matcher repository {:mtype m/all-of-set :ctypes ctypes}))
 
 (defn add-component [repository ctype {:keys [creation-index] :as entity}]
+  ;; FIXME this is questionable at best
   (let [r1 (assoc-in repository [:entities creation-index] entity)
         f (fn [collection]
             (if ((:matcher collection) (:ctypes entity))
