@@ -13,7 +13,7 @@
 
 (deftest add-entity
   (let [repository (r/create)
-        entity (e/add-component (e/create :foo ) (c/create :bar))
+        entity (e/add-component (e/create :foo) (c/create :bar))
         [new-repository new-entity] (r/add-entity repository entity)]
     (is (= 1 (:current-index new-repository)))
     (is (= nil (:creation-index entity)))
@@ -22,7 +22,7 @@
 
 (deftest remove-entity
   (let [repository (r/create)
-        entity (e/add-component (e/create :foo ) (c/create :bar))
+        entity (e/add-component (e/create :foo) (c/create :bar))
         [r1 e1] (r/add-entity repository entity)
         r2 (r/remove-entity r1 e1)]
     (is (= {} (:entities r2)))
@@ -30,7 +30,7 @@
 
 (deftest remove-entity
   (let [repository (r/create)
-        entity (e/add-component (e/create :foo ) (c/create :bar))
+        entity (e/add-component (e/create :foo) (c/create :bar))
         [r1 e1] (r/add-entity repository entity)
         r2 (r/remove-entity r1 e1)]
     (is (= {} (:entities r2)))
@@ -38,7 +38,7 @@
 
 (deftest contains-existing-entity
   (let [repository (r/create)
-        entity (e/create :foo )
+        entity (e/create :foo)
         [r1 e1] (r/add-entity repository entity)]
     (is (r/contains-entity r1 e1))
     (is (not (r/contains-entity r1 (e/create :baz))))))
