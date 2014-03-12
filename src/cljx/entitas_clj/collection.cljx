@@ -16,7 +16,6 @@
 (defn type-matcher [collection]
   (:matcher collection))
 
-;; TODO separate notification handling
 (defn notify [observers event-type collection entity]
   (doseq [observer observers]
     (observer entity collection)))
@@ -30,12 +29,13 @@
     new-collection))
 
 (defn exchange-entity [collection {:keys [creation-index] :as entity}]
-  (if (nil? (get-in collection [:entities creation-index]))
-    (add-entity collection entity)
-    (do
-      (notify (:remove-observers collection) :removed collection entity)
-      (notify (:add-observers collection) :added collection entity)
-      collection)))
+  (let [path [:entities creation-index]]
+    (if (nil? (get-in collection path))
+      (add-entity collection entity)
+      (let [new-collection (assoc-in collection path entity)]
+        (notify (:remove-observers collection) :removed new-collection entity)
+        (notify (:add-observers collection) :added new-collection entity)
+        new-collection))))
 
 (defn remove-entity [collection {:keys [creation-index] :as entity}]
   (let [path [:entities creation-index]]

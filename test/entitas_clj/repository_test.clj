@@ -50,3 +50,16 @@
         [r1 e1] (r/add-entity repository entity)
         r2 (r/add-component r1 ctype e1)]
     (is (not (nil? (get-in r2 [:collections-for-type ctype]))))))
+
+(deftest exchange-component
+  (let [repository (r/create)
+        ctype :bar
+        c1 (c/create ctype)
+        entity (e/add-component (e/create :foo) c1)
+        [r1 e1] (r/add-entity repository entity)
+        r2 (r/add-component r1 ctype e1)
+        c2 (assoc c1 :x 10 :y 10)
+        e2 (e/exchange-component e1 c2)
+        r3 (r/exchange-component r2 ctype e2)
+        c-entity (get-in (first (get-in r3 [:collections-for-type ctype])) [:entities 0])]
+    (is (= e2 c-entity))))

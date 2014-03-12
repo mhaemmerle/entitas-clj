@@ -1,5 +1,10 @@
 (ns entitas-clj.system
-  (:refer-clojure :exclude [remove]))
+  (:refer-clojure :exclude [remove])
+  (:refer #+clj [core.async :refer [chan go sliding-buffer put! alts!]]
+          #+cljs [cljs.core.async :refer [chan sliding-buffer put! alts!]]
+          )
+  #+cljs (:require-macros [cljs.core.async.macros :refer [go]])
+  )
 
 ;; system
 

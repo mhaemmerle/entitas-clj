@@ -75,8 +75,7 @@
     (update-in repository [:collections-for-type ctype] #(vec (map f %)))))
 
 (defn remove-component [repository ctype {:keys [creation-index] :as entity}]
-  (let [;; r1 (assoc-in repository [:entities ] entity)
-        original-ctypes (conj (:ctypes entity) ctype)
+  (let [original-ctypes (conj (:ctypes entity) ctype)
         f (fn [collection]
             (if (and ((:matcher collection) original-ctypes)
                      (not ((:matcher collection) (:ctypes entity))))
