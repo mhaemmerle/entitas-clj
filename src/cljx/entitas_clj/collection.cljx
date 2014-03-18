@@ -20,16 +20,16 @@
   (doseq [observer observers]
     (observer entity collection)))
 
-(defn add-entity [collection {:keys [creation-index] :as entity}]
-  (let [path [:entities creation-index]
+(defn add-entity [collection entity]
+  (let [path [:entities (:creation-index @entity)]
         new-collection (if (nil? (get-in collection path))
                          (assoc-in collection path entity)
                          collection)]
     (notify (:add-observers collection) :added collection entity)
     new-collection))
 
-(defn exchange-entity [collection {:keys [creation-index] :as entity}]
-  (let [path [:entities creation-index]]
+(defn exchange-entity [collection entity]
+  (let [path [:entities (:creation-index @entity)]]
     (if (nil? (get-in collection path))
       (add-entity collection entity)
       (let [new-collection (assoc-in collection path entity)]
@@ -37,8 +37,9 @@
         (notify (:add-observers collection) :added new-collection entity)
         new-collection))))
 
-(defn remove-entity [collection {:keys [creation-index] :as entity}]
-  (let [path [:entities creation-index]]
+(defn remove-entity [collection entity]
+  (let [creation-index (:creation-index @entity)
+        path [:entities creation-index]]
     (if (nil? (get-in collection path))
       collection
       (let [new-collection (update-in collection path dissoc creation-index)]

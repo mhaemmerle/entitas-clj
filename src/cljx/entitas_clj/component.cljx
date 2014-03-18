@@ -1,4 +1,3 @@
-(ns entitas-clj.component
-  )
+(ns entitas-clj.component)
 
-(defn create [type] {:type type})
+(defn create [type data] {:type type :data data})

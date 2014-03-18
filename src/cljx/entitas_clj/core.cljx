@@ -18,4 +18,4 @@
 
 (defn destroy-entity [repository entity]
   (reduce (fn [[r e] ctype]
-            (remove-component r e ctype)) [repository entity] (:ctypes entity)))
+            (remove-component r e ctype)) [repository entity] (:ctypes @entity)))

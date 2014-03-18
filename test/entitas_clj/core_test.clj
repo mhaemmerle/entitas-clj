@@ -10,6 +10,7 @@
         e0 (e/create etype)
         [r0 e1] (r/add-entity (r/create) e0)
         ctype :bar
-        component (c/create ctype)
-        [r1 e1] (add-component r0 e1 component)]
-    (is (= (:components (get-in r1 [:entities 0])) {ctype component}))))
+        component (c/create ctype nil)
+        [r1 e2] (add-component r0 e1 component)
+        expected-components {ctype {:type ctype :data nil}}]
+    (is (= expected-components (:components @(get-in r1 [:entities 0]))))))

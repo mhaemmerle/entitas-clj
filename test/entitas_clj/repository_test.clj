@@ -13,16 +13,16 @@
 
 (deftest add-entity
   (let [repository (r/create)
-        entity (e/add-component (e/create :foo) (c/create :bar))
-        [new-repository new-entity] (r/add-entity repository entity)]
-    (is (= 1 (:current-index new-repository)))
+        entity (e/add-component (e/create :foo) (c/create :bar nil))]
     (is (= nil (:creation-index entity)))
-    (is (= 0 (:creation-index new-entity)))
-    (is (= new-entity (get-in new-repository [:entities 0])))))
+    (let [[new-repository _] (r/add-entity repository entity)]
+      (is (= 1 (:current-index new-repository)))
+      (is (= 0 (:creation-index @entity)))
+      (is (= entity (get-in new-repository [:entities 0]))))))
 
 (deftest remove-entity
   (let [repository (r/create)
-        entity (e/add-component (e/create :foo) (c/create :bar))
+        entity (e/add-component (e/create :foo) (c/create :bar nil))
         [r1 e1] (r/add-entity repository entity)
         r2 (r/remove-entity r1 e1)]
     (is (= {} (:entities r2)))
@@ -30,7 +30,7 @@
 
 (deftest remove-entity
   (let [repository (r/create)
-        entity (e/add-component (e/create :foo) (c/create :bar))
+        entity (e/add-component (e/create :foo) (c/create :bar nil))
         [r1 e1] (r/add-entity repository entity)
         r2 (r/remove-entity r1 e1)]
     (is (= {} (:entities r2)))
@@ -46,7 +46,7 @@
 (deftest add-component
   (let [repository (r/create)
         ctype :bar
-        entity (e/add-component (e/create :foo) (c/create ctype))
+        entity (e/add-component (e/create :foo) (c/create ctype nil))
         [r1 e1] (r/add-entity repository entity)
         r2 (r/add-component r1 ctype e1)]
     (is (not (nil? (get-in r2 [:collections-for-type ctype]))))))
@@ -54,7 +54,7 @@
 (deftest exchange-component
   (let [repository (r/create)
         ctype :bar
-        c1 (c/create ctype)
+        c1 (c/create ctype nil)
         entity (e/add-component (e/create :foo) c1)
         [r1 e1] (r/add-entity repository entity)
         r2 (r/add-component r1 ctype e1)
