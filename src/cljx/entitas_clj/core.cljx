@@ -15,7 +15,3 @@
 (defn remove-component [repository entity ctype]
   (let [new-entity (e/remove-component-of-type entity ctype)]
     (r/remove-component repository ctype new-entity)))
-
-(defn destroy-entity [repository entity]
-  (reduce (fn [acc ctype]
-            (remove-component acc entity ctype)) repository (:ctypes @entity)))
