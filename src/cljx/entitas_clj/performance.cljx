@@ -15,10 +15,11 @@
 
 (defn entry-creation-bench [repository num-entities ctype1 ctype2]
   (reduce (fn [acc i]
-            (let [[new-acc entity] (r/add-entity acc (e/create :foo))]
+            (let [entity (e/create :foo)
+                  new-acc (r/add-entity acc entity)]
               (condp = (mod i 25)
-                0 (first (cr/add-component new-acc entity (cm/create ctype1)))
-                1 (first (cr/add-component new-acc entity (cm/create ctype2)))
+                0 (cr/add-component new-acc entity (cm/create ctype1 nil))
+                1 (cr/add-component new-acc entity (cm/create ctype2 nil))
                 new-acc)))
           repository (range num-entities)))
 
@@ -41,14 +42,14 @@
 
 (defn exchange-component-in-all-entities [repository entities]
   (let [[i result] (reduce (fn [[idx acc] entity]
-                             (let [[r _] (cr/exchange-component acc entity (cm/create :foo))]
+                             (let [r (cr/exchange-component acc entity (cm/create :foo nil))]
                                [(inc idx) r])) [0 repository] entities)]
     (println "exhanged" i "components")
     result))
 
 (defn destroy-all-entities [repository]
   (reduce (fn [acc entity]
-            (let [[r _] (cr/destroy-entity acc entity)]
+            (let [r (cr/destroy-entity acc entity)]
               r)) repository (r/all-entities repository)))
 
 (defmacro with-time [& body]

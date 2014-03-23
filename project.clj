@@ -18,7 +18,6 @@
                         :compiler {:output-to "resources/public/js/main.js"
                                    :optimizations :whitespace
                                    :pretty-print true}}]}
-  :jvm-opts ["-server"
-             "-Djava.awt.headless=true"]
+  :jvm-opts ["-server"]
   :hooks [cljx.hooks]
   :main entitas-clj.performance)

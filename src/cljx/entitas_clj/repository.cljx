@@ -14,10 +14,9 @@
 
 (defn add-entity [{:keys [current-index] :as repository} entity]
   (swap! entity assoc :creation-index current-index)
-  (let [new-repository (-> repository
-                           (assoc-in ,, [:entities current-index] entity)
-                           (update-in ,, [:current-index] inc))]
-    [new-repository entity]))
+  (-> repository
+      (assoc-in ,, [:entities current-index] entity)
+      (update-in ,, [:current-index] inc)))
 
 ;; FIXME this also updates the collections in the ObjC version
 (defn remove-entity [repository entity]
