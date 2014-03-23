@@ -49,8 +49,7 @@
 
 (defn destroy-all-entities [repository]
   (reduce (fn [acc entity]
-            (let [r (cr/destroy-entity acc entity)]
-              r)) repository (r/all-entities repository)))
+            (r/remove-entity acc entity)) repository (r/all-entities repository)))
 
 (defmacro with-time [& body]
   (let [fname (first (flatten body))]
