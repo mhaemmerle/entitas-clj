@@ -18,10 +18,6 @@
       (assoc-in ,, [:entities current-index] entity)
       (update-in ,, [:current-index] inc)))
 
-;; FIXME this also updates the collections in the ObjC version
-(defn remove-entity [repository entity]
-  (update-in repository [:entities] dissoc (:creation-index @entity)))
-
 (defn contains-entity [repository entity]
   (not (nil? (get-in repository [:entities (:creation-index @entity)]))))
 
@@ -52,7 +48,6 @@
   (collection-for-matcher repository {:mtype m/all-of-set :ctypes ctypes}))
 
 (defn add-component [repository ctype entity]
-  ;; FIXME this is questionable at best
   (let [r1 (assoc-in repository [:entities (:creation-index @entity)] entity)
         f (fn [collection]
             (if ((:matcher collection) (:ctypes @entity))
@@ -81,3 +76,10 @@
               (c/remove-entity collection entity)
               collection))]
     (update-in repository [:collections-for-type ctype] #(vec (map f %)))))
+
+(defn remove-entity [repository entity]
+  (let [ctypes (:ctypes @entity)
+        creation-index (:creation-index @entity)
+        r1 (reduce (fn [acc ctype]
+                     (remove-component acc ctype entity)) repository ctypes)]
+    (update-in r1 [:entities] dissoc creation-index)))
