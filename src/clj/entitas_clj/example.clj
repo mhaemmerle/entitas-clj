@@ -13,12 +13,13 @@
     (e/add-component (e/create entity-id) position)))
 
 (defn handle-input [{:keys [x y] :as position} input]
-  (case input
-    :left (assoc position :x (- x 1))
-    :right (assoc position :x (inc x))
-    :up (assoc position :y (- y 1))
-    :down (assoc position :y (inc y))
-    position))
+  (let [[new-x new-y] (case input
+                        :left [(- x 1) y]
+                        :right [(inc x) y]
+                        :up [x (- y 1)]
+                        :down [x (inc y)]
+                        [x y])]
+    (assoc position :x new-x :y new-y)))
 
 (defn update-position [entity f input]
   (let [component (e/component-of-type entity :position)]
