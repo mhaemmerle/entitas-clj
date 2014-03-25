@@ -1,5 +1,4 @@
 (ns entitas-clj.example
-  (:gen-class)
   (:require [entitas-clj.core :as cr]
             [entitas-clj.component :as c]
             [entitas-clj.entity :as e]
