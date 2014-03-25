@@ -11,11 +11,11 @@
 (defn create []
   [])
 
-(defn create-system []
+(defn create-system [execute-fn]
   {:active true
    :activate-fn nil
    :deactivate-fn nil
-   :execute-fn nil})
+   :execute-fn execute-fn})
 
 ;; systems
 
