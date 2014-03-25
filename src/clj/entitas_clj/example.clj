@@ -22,16 +22,16 @@
                         [x y])]
     (assoc position :x new-x :y new-y)))
 
-(defn update-position [entity f input]
+(defn update-position [entity input]
   (let [component (e/component-of-type entity :position)]
-    (update-in component [:data] #(f % input))))
+    (update-in component [:data] handle-input input)))
 
 (defn render [screen rc]
   (ls/clear screen)
   (doseq [entity (vals (cl/entities rc))]
     (let [component (e/component-of-type entity :position)
-          data (:data component)]
-      (ls/put-string screen (:x data) (:y data) (:char data))))
+          {:keys [x y char]} (:data component)]
+      (ls/put-string screen x y char)))
   (ls/redraw screen))
 
 (defn start [width height]
@@ -43,7 +43,7 @@
     (ls/start screen)
     (loop [input (ls/get-key-blocking screen)
            state {:systems {:render render-system} :repository repository}]
-      (let [position-component (update-position player handle-input input)
+      (let [position-component (update-position player input)
             repository0 (cr/exchange-component (:repository state) player position-component)
             [repository1 rc] (r/collection-for-types repository0 #{:render})
             rs (get-in state [:systems :render])]
