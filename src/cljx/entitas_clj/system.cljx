@@ -8,16 +8,17 @@
 
 ;; system
 
-(defn create []
-  [])
-
-(defn create-system [execute-fn]
-  {:active true
+(defn create [type execute-fn]
+  {:type type
+   :active true
+   :execute-fn execute-fn
    :activate-fn nil
-   :deactivate-fn nil
-   :execute-fn execute-fn})
+   :deactivate-fn nil})
 
 ;; systems
+
+(defn create-systems []
+  [])
 
 (defn add [systems system]
   (conj systems system))
@@ -28,19 +29,20 @@
 (defn remove [systems system]
   (vec (clojure.core/remove #{system} systems)))
 
-(defn execute [systems]
-  (doseq [system systems]
-    ((:execute-fn system))))
+(defn execute [systems repository]
+  (reduce (fn [repo system]
+            ;; returns updated repository
+            ((:execute-fn system) repository)) repository systems))
 
 (defn activate [systems]
-  (map (fn [system]
-         ((:activate-fn system) system)
-         (assoc system :active true)) systems))
+  (vec (map (fn [system]
+              ((:activate-fn system) system)
+              (assoc system :active true)) systems)))
 
 (defn deactivate [systems]
-  (map (fn [system]
-         ((:deactivate-fn system) system)
-         (assoc system :active false)) systems))
+  (vec (map (fn [system]
+              ((:deactivate-fn system) system)
+              (assoc system :active false)) systems)))
 
 (defn remove-all [systems]
   [])

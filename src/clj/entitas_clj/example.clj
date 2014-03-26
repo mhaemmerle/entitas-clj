@@ -26,28 +26,30 @@
   (let [component (e/component-of-type entity :position)]
     (update-in component [:data] handle-input input)))
 
-(defn render [screen rc]
-  (ls/clear screen)
-  (doseq [entity (vals (cl/entities rc))]
-    (let [component (e/component-of-type entity :position)
-          {:keys [x y char]} (:data component)]
-      (ls/put-string screen x y char)))
-  (ls/redraw screen))
+;; screen should be in render component
+(defn execute-render-system [screen repository]
+  (let [[new-repository rc] (r/collection-for-types repository #{:render})]
+    (ls/clear screen)
+    (doseq [entity (vals (cl/entities rc))]
+      (let [component (e/component-of-type entity :position)
+            {:keys [x y char]} (:data component)]
+        (ls/put-string screen x y char)))
+    (ls/redraw screen)
+    new-repository))
 
 (defn start [width height]
   (let [screen (ls/get-screen :swing {:cols width :rows height})
         player0 (create-player 0 0)
         player (e/add-component player0 (c/create :render nil))
         repository (r/add-entity (r/create) player)
-        render-system (s/create-system #(render screen %))]
+        render-system (s/create :render #(execute-render-system screen %))]
     (ls/start screen)
     (loop [input (ls/get-key-blocking screen)
-           state {:systems {:render render-system} :repository repository}]
+           state {:systems [render-system] :repository repository}]
       (let [position-component (update-position player input)
             repository0 (cr/exchange-component (:repository state) player position-component)
-            [repository1 rc] (r/collection-for-types repository0 #{:render})
-            rs (get-in state [:systems :render])]
-        ((:execute-fn rs) rc)
-        (recur (ls/get-key-blocking screen) (assoc state :repository repository1))))))
+            repository1 (s/execute (:systems state) repository0)]
+        (recur (ls/get-key-blocking screen)
+               (assoc state :repository repository1))))))
 
 ;; (start 40 40)
