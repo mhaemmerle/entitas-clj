@@ -2,11 +2,12 @@
   (:use clojure.test)
   (:require [entitas-clj.component :as c]
             [entitas-clj.entity :as e]
+            [entitas-clj.collection :as cl]
             [entitas-clj.repository :as r]))
 
 (deftest create
   (let [repository (r/create)]
-    (is (= {} (:entities repository)))
+    (is (empty? (r/all-entities repository)))
     (is (= {} (:collections repository)))
     (is (= {} (:collections-for-type repository)))
     (is (= 0 (:current-index repository)))))
@@ -25,16 +26,20 @@
         entity (e/add-component (e/create :foo) (c/create :bar nil))
         r1 (r/add-entity repository entity)
         r2 (r/remove-entity r1 entity)]
-    (is (= {} (:entities r2)))
+    (is (empty? (r/all-entities r2)))
     (is (= 1 (:current-index r2)))))
 
-(deftest remove-entity
+(deftest remove-entity-collection
   (let [repository (r/create)
         entity (e/add-component (e/create :foo) (c/create :bar nil))
         r1 (r/add-entity repository entity)
-        r2 (r/remove-entity r1 entity)]
-    (is (= {} (:entities r2)))
-    (is (= 1 (:current-index r2)))))
+        [r2 c1] (r/collection-for-types r1 #{:bar})
+        r3 (r/remove-entity r2 entity)
+        [r4 c2] (r/collection-for-types r3 #{:bar})]
+    (is (empty? (r/all-entities r3)))
+    (is (= 1 (:current-index r3)))
+    (is (= 1 (count (cl/entities c1))))
+    (is (= 0 (count (cl/entities c2))))))
 
 (deftest contains-existing-entity
   (let [repository (r/create)
@@ -49,7 +54,8 @@
         entity (e/add-component (e/create :foo) (c/create ctype nil))
         r1 (r/add-entity repository entity)
         r2 (r/add-component r1 ctype entity)]
-    (is (not (nil? (get-in r2 [:collections-for-type ctype]))))))
+    (is (= nil (get-in r2 [:collections-for-type ctype])))
+    (is (= (r/all-entities r2) (list entity)))))
 
 (deftest exchange-component
   (let [repository (r/create)
@@ -60,6 +66,8 @@
         r2 (r/add-component r1 ctype entity)
         c2 (assoc c1 :x 10 :y 10)
         _ (e/exchange-component entity c2)
-        r3 (r/exchange-component r2 ctype entity)
-        c-entity (get-in (first (get-in r3 [:collections-for-type ctype])) [:entities 0])]
-    (is (= entity c-entity))))
+        r3 (r/exchange-component r2 ctype entity)]
+    (is (= nil (get-in r3 [:collections-for-type ctype])))
+    (is (= (r/all-entities r3) (list entity)))))
+
+;; TODO add test for remove component

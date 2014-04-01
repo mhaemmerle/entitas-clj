@@ -1,14 +1,18 @@
 (ns entitas-clj.collection
   (:require [entitas-clj.matcher :as m]))
 
-(defn init-with-matcher [matcher]
+(defn init-with-matcher [matcher mname mkey]
   {:matcher matcher
+   :name mname
+   :mkey mkey
    :entities {}
    :add-observers #{}
    :remove-observers {}})
 
-(defn init-with-types [types]
-  (init-with-matcher #(m/all-of-set types %)))
+(defn init-with-types [ctypes]
+  (let [mname (m/to-name #'entitas-clj.matcher/all-of-set)
+        mkey (m/to-key mname ctypes)]
+    (init-with-matcher #(entitas-clj.matcher/all-of-set ctypes %) mname)))
 
 (defn entities [collection]
   (:entities collection))
@@ -42,7 +46,7 @@
         path [:entities creation-index]]
     (if (nil? (get-in collection path))
       collection
-      (let [new-collection (update-in collection path dissoc creation-index)]
+      (let [new-collection (update-in collection [:entities] dissoc creation-index)]
         (notify (:remove-observers collection) :removed new-collection entity)
         new-collection))))
 

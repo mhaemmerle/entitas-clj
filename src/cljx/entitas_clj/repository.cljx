@@ -12,70 +12,79 @@
 (defn all-entities [repository]
   (vals (:entities repository)))
 
-(defn add-entity [{:keys [current-index] :as repository} entity]
-  (swap! entity assoc :creation-index current-index)
-  (-> repository
-      (assoc-in ,, [:entities current-index] entity)
-      (update-in ,, [:current-index] inc)))
-
 (defn contains-entity [repository entity]
   (not (nil? (get-in repository [:entities (:creation-index @entity)]))))
 
 (defn internal-collections-for-type [repository ctype]
   (or (get-in repository [:collections-for-type ctype]) #{}))
 
-(defn memoize-matcher [repository {:keys [mtype ctypes] :as matcher-config}]
-  (let [matcher #(mtype ctypes %)]
-    (reduce (fn [acc entity]
-              (if (matcher (:ctypes @entity))
-                (c/add-entity acc entity)
-                acc))
-            (c/init-with-matcher matcher) (all-entities repository))))
+(defn memoize-matcher [repository {:keys [mtype mname ctypes] :as matcher-config}]
+  (let [matcher #(mtype ctypes %)
+        mkey (m/to-key mname ctypes)
+        mcoll (reduce (fn [acc entity]
+                        (if (matcher (:ctypes @entity))
+                          (c/add-entity acc entity)
+                          acc))
+                      (c/init-with-matcher matcher mname mkey) (all-entities repository))
+        r0 (update-in repository [:collections] assoc mkey mcoll)
+        r1 (reduce (fn [acc ctype]
+                     (update-in acc [:collections-for-type ctype] conj mcoll)) r0 ctypes)]
+    [r1 mcoll]))
 
-(defn collection-for-matcher [repository {:keys [mtype ctypes] :as matcher-config}]
-  (let [mkey (m/to-key mtype ctypes)]
-    (let [collection (get-in repository [:collections mkey])]
-      (if (not (nil? collection))
-        [repository collection]
-        (let [mcoll (memoize-matcher repository matcher-config)]
-          [(update-in repository [:collections] assoc mkey mcoll) mcoll])))))
+(defn collection-for-matcher [repository {:keys [mtype mname ctypes] :as matcher-config}]
+  (let [mkey (m/to-key mname ctypes)
+        collection (get-in repository [:collections mkey])]
+    (if (nil? collection)
+      (memoize-matcher repository matcher-config)
+      [repository collection])))
 
 (defn entities-for-matcher [repository matcher-config]
   (let [[new-repository collection] (collection-for-matcher repository matcher-config)]
     [new-repository (c/entities collection)]))
 
 (defn collection-for-types [repository ctypes]
-  (collection-for-matcher repository {:mtype m/all-of-set :ctypes ctypes}))
+  (let [mtype entitas-clj.matcher/all-of-set
+        mname (m/to-name #'entitas-clj.matcher/all-of-set)]
+    (collection-for-matcher repository {:mtype mtype :mname mname :ctypes ctypes})))
 
 (defn add-component [repository ctype entity]
-  (let [r1 (assoc-in repository [:entities (:creation-index @entity)] entity)
-        f (fn [collection]
+  (let [f (fn [collection]
             (if ((:matcher collection) (:ctypes @entity))
               (c/add-entity collection entity)
               collection))
-        cft (internal-collections-for-type r1 ctype)
-        f2 (if (= 0 (count cft))
-             (let [m #(m/just ctype %)
-                   c (c/init-with-matcher m)]
-               [(f c)])
-             (vec (map f cft)))]
-    (assoc-in r1 [:collections-for-type ctype] f2)))
+        cft (set (map f (internal-collections-for-type repository ctype)))]
+    (if (empty? cft)
+      repository
+      (assoc-in repository [:collections-for-type ctype] cft))))
 
 (defn exchange-component [repository ctype entity]
   (let [f (fn [collection]
             (if ((:matcher collection) (:ctypes @entity))
               (c/exchange-entity collection entity)
-              collection))]
-    (update-in repository [:collections-for-type ctype] #(vec (map f %)))))
+              collection))
+        cft (set (map f (internal-collections-for-type repository ctype)))]
+    (if (empty? cft)
+      repository
+      (assoc-in repository [:collections-for-type ctype] cft))))
+
+(defn internal-replace [repository cft collections]
+  (let [lookup (into {} (map (fn [lcoll] [(:matcher lcoll) lcoll]) cft))]
+    (reduce (fn [acc [k v]]
+              (if (nil? (get lookup k))
+                acc
+                (assoc acc k (get lookup (:matcher v))))) {} collections)))
 
 (defn remove-component [repository ctype entity]
-  (let [original-ctypes (conj (:ctypes @entity) ctype)
+  (let [ctypes (:ctypes @entity)
         f (fn [collection]
-            (if (and ((:matcher collection) original-ctypes)
-                     (not ((:matcher collection) (:ctypes @entity))))
+            (if ((:matcher collection) ctypes)
               (c/remove-entity collection entity)
-              collection))]
-    (update-in repository [:collections-for-type ctype] #(vec (map f %)))))
+              collection))
+        cft (set (map f (internal-collections-for-type repository ctype)))
+        r0 (if (empty? cft)
+             repository
+             (assoc-in repository [:collections-for-type ctype] cft))]
+    (update-in repository [:collections] #(internal-replace repository cft %))))
 
 (defn remove-entity [repository entity]
   (let [ctypes (:ctypes @entity)
@@ -83,3 +92,12 @@
         r1 (reduce (fn [acc ctype]
                      (remove-component acc ctype entity)) repository ctypes)]
     (update-in r1 [:entities] dissoc creation-index)))
+
+(defn add-entity [{:keys [current-index] :as repository} entity]
+  (swap! entity assoc :creation-index current-index)
+  (let [components (vals (:components @entity))
+        r0 (-> repository
+               (assoc-in ,, [:entities current-index] entity)
+               (update-in ,, [:current-index] inc))]
+    (reduce (fn [acc component]
+              (add-component acc (:type component) entity)) r0 components)))
