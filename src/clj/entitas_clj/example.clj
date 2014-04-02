@@ -5,7 +5,8 @@
             [entitas-clj.entity :as e]
             [entitas-clj.repository :as r]
             [entitas-clj.system :as s]
-            [lanterna.screen :as ls]))
+            [lanterna.screen :as ls]
+            [clojure.core.async :refer [chan go sliding-buffer put! alts! <! >!]]))
 
 (defn create-player [x y]
   (let [entity-id :player
