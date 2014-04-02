@@ -28,7 +28,9 @@
                       (c/init-with-matcher matcher mname mkey) (all-entities repository))
         r0 (update-in repository [:collections] assoc mkey mcoll)
         r1 (reduce (fn [acc ctype]
-                     (update-in acc [:collections-for-type ctype] conj mcoll)) r0 ctypes)]
+                     (let [f (fnil (fn [colls]
+                                     (conj colls mcoll)) #{})]
+                       (update-in acc [:collections-for-type ctype] f))) r0 ctypes)]
     [r1 mcoll]))
 
 (defn collection-for-matcher [repository {:keys [mtype mname ctypes] :as matcher-config}]
@@ -49,7 +51,7 @@
 
 (defn add-component [repository ctype entity]
   (let [f (fn [collection]
-            (if ((:matcher collection) (:ctypes @entity))
+            (if ((:matcher @collection) (:ctypes @entity))
               (c/add-entity collection entity)
               collection))
         cft (set (map f (internal-collections-for-type repository ctype)))]
@@ -59,7 +61,7 @@
 
 (defn exchange-component [repository ctype entity]
   (let [f (fn [collection]
-            (if ((:matcher collection) (:ctypes @entity))
+            (if ((:matcher @collection) (:ctypes @entity))
               (c/exchange-entity collection entity)
               collection))
         cft (set (map f (internal-collections-for-type repository ctype)))]
@@ -67,24 +69,16 @@
       repository
       (assoc-in repository [:collections-for-type ctype] cft))))
 
-(defn internal-replace [repository cft collections]
-  (let [lookup (into {} (map (fn [lcoll] [(:matcher lcoll) lcoll]) cft))]
-    (reduce (fn [acc [k v]]
-              (if (nil? (get lookup k))
-                acc
-                (assoc acc k (get lookup (:matcher v))))) {} collections)))
-
 (defn remove-component [repository ctype entity]
   (let [ctypes (:ctypes @entity)
         f (fn [collection]
-            (if ((:matcher collection) ctypes)
+            (if ((:matcher @collection) ctypes)
               (c/remove-entity collection entity)
               collection))
-        cft (set (map f (internal-collections-for-type repository ctype)))
-        r0 (if (empty? cft)
-             repository
-             (assoc-in repository [:collections-for-type ctype] cft))]
-    (update-in repository [:collections] #(internal-replace repository cft %))))
+        cft (set (map f (internal-collections-for-type repository ctype)))]
+    (if (empty? cft)
+      repository
+      (assoc-in repository [:collections-for-type ctype] cft))))
 
 (defn remove-entity [repository entity]
   (let [ctypes (:ctypes @entity)

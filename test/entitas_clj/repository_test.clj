@@ -12,6 +12,51 @@
     (is (= {} (:collections-for-type repository)))
     (is (= 0 (:current-index repository)))))
 
+(deftest contains-existing-entity
+  (let [repository (r/create)
+        entity (e/create :foo)
+        repo1 (r/add-entity repository entity)]
+    (is (r/contains-entity repo1 entity))
+    (is (not (r/contains-entity repo1 (e/create :baz))))))
+
+(deftest add-component
+  (let [repository (r/create)
+        ctype :bar
+        entity (e/add-component (e/create :foo) (c/create ctype nil))
+        repo1 (r/add-entity repository entity)
+        repo2 (r/add-component repo1 ctype entity)]
+    (is (= nil (get-in repo2 [:collections-for-type ctype])))
+    (is (= (r/all-entities repo2) (list entity)))))
+
+(deftest exchange-component
+  (let [repository (r/create)
+        ctype :bar
+        comp1 (c/create ctype nil)
+        entity (e/add-component (e/create :foo) comp1)
+        repo1 (r/add-entity repository entity)
+        repo2 (r/add-component repo1 ctype entity)
+        comp2 (assoc comp1 :x 10 :y 10)]
+    (e/exchange-component entity comp2)
+    (let [repo3 (r/exchange-component repo2 ctype entity)]
+      (is (= nil (get-in repo3 [:collections-for-type ctype])))
+      (is (= (r/all-entities repo3) (list entity))))))
+
+(deftest remove-component
+  (let [repository (r/create)
+        ctype :bar
+        entity (e/add-component (e/create :foo) (c/create ctype nil))
+        repo1 (r/add-entity repository entity)
+        repo2 (r/add-component repo1 ctype entity)
+        [repo3 coll1] (r/collection-for-types repo2 #{ctype})
+        cft1 (get-in repo3 [:collections-for-type ctype])]
+    (is (= entity (first (vals (cl/entities coll1)))))
+    (is (= #{coll1} cft1))
+    (let [repo4 (r/remove-component repo3 ctype entity)
+          [repo5 coll2] (r/collection-for-types repo4 #{ctype})
+          cft2 (get-in repo4 [:collections-for-type ctype])]
+      (is (= {} (cl/entities coll2)))
+      (is (= #{coll2} cft2)))))
+
 (deftest add-entity
   (let [repository (r/create)
         entity (e/add-component (e/create :foo) (c/create :bar nil))]
@@ -24,50 +69,19 @@
 (deftest remove-entity
   (let [repository (r/create)
         entity (e/add-component (e/create :foo) (c/create :bar nil))
-        r1 (r/add-entity repository entity)
-        r2 (r/remove-entity r1 entity)]
-    (is (empty? (r/all-entities r2)))
-    (is (= 1 (:current-index r2)))))
+        repo1 (r/add-entity repository entity)
+        repo2 (r/remove-entity repo1 entity)]
+    (is (empty? (r/all-entities repo2)))
+    (is (= 1 (:current-index repo2)))))
 
 (deftest remove-entity-collection
   (let [repository (r/create)
         entity (e/add-component (e/create :foo) (c/create :bar nil))
-        r1 (r/add-entity repository entity)
-        [r2 c1] (r/collection-for-types r1 #{:bar})
-        r3 (r/remove-entity r2 entity)
-        [r4 c2] (r/collection-for-types r3 #{:bar})]
-    (is (empty? (r/all-entities r3)))
-    (is (= 1 (:current-index r3)))
-    (is (= 1 (count (cl/entities c1))))
-    (is (= 0 (count (cl/entities c2))))))
-
-(deftest contains-existing-entity
-  (let [repository (r/create)
-        entity (e/create :foo)
-        r1 (r/add-entity repository entity)]
-    (is (r/contains-entity r1 entity))
-    (is (not (r/contains-entity r1 (e/create :baz))))))
-
-(deftest add-component
-  (let [repository (r/create)
-        ctype :bar
-        entity (e/add-component (e/create :foo) (c/create ctype nil))
-        r1 (r/add-entity repository entity)
-        r2 (r/add-component r1 ctype entity)]
-    (is (= nil (get-in r2 [:collections-for-type ctype])))
-    (is (= (r/all-entities r2) (list entity)))))
-
-(deftest exchange-component
-  (let [repository (r/create)
-        ctype :bar
-        c1 (c/create ctype nil)
-        entity (e/add-component (e/create :foo) c1)
-        r1 (r/add-entity repository entity)
-        r2 (r/add-component r1 ctype entity)
-        c2 (assoc c1 :x 10 :y 10)
-        _ (e/exchange-component entity c2)
-        r3 (r/exchange-component r2 ctype entity)]
-    (is (= nil (get-in r3 [:collections-for-type ctype])))
-    (is (= (r/all-entities r3) (list entity)))))
-
-;; TODO add test for remove component
+        repo1 (r/add-entity repository entity)
+        [repo2 coll1] (r/collection-for-types repo1 #{:bar})]
+    (is (= 1 (count (cl/entities coll1))))
+    (let [repo3 (r/remove-entity repo2 entity)
+          [repo4 coll2] (r/collection-for-types repo3 #{:bar})]
+      (is (empty? (r/all-entities repo3)))
+      (is (= 1 (:current-index repo3)))
+      (is (= 0 (count (cl/entities coll2)))))))

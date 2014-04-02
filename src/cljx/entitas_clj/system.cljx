@@ -30,9 +30,8 @@
   (vec (clojure.core/remove #{system} systems)))
 
 (defn execute [systems repository]
-  (reduce (fn [repo system]
-            ;; returns updated repository
-            ((:execute-fn system) repository)) repository systems))
+  (reduce (fn [acc system]
+            ((:execute-fn system) acc)) repository systems))
 
 (defn activate [systems]
   (vec (map (fn [system]

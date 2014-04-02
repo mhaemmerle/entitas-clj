@@ -9,9 +9,11 @@
 
 (defn create-player [x y]
   (let [entity-id :player
-        ctype :position
-        position (c/create ctype {:x x :y y :char "X"})]
-    (e/add-component (e/create entity-id) position)))
+        position-comp (c/create :position {:x x :y y :char "X"})
+        player-comp (c/create :player nil)]
+    (-> (e/create entity-id)
+        (e/add-component ,, position-comp)
+        (e/add-component ,, player-comp))))
 
 (defn create-enemy [x y]
   (let [entity-id :enemy
@@ -32,17 +34,48 @@
   (let [component (e/component-of-type entity :position)]
     (update-in component [:data] handle-input input)))
 
-(defn create-input-emitter [screen]
+(defn input->entities [screen]
+  (loop [input (ls/get-key screen)
+         acc []]
+    (if (not (nil? input))
+      (let [ctype :key-press
+            comp (c/create ctype {:input input})
+            new-acc (conj acc (e/add-component (e/create nil) comp))]
+        (recur (ls/get-key screen) new-acc))
+      acc)))
 
+(defn collect-input [repository screen]
+  (reduce (fn [acc entity]
+            (r/add-entity acc entity)) repository (input->entities screen)))
 
-  )
+;; (defn create-input-emitter [screen ch]
+;;   (go (while true
+;;         (let [ctype :key-press
+;;               input (ls/get-key screen)]
+;;           (when-not (nil? input)
+;;             (let [comp (c/create ctype {:input input})
+;;                   ent (e/add-component (e/create nil) comp)]
+;;               (>! ch ent)))))))
 
 (defn execute-enemy-move-system [repository]
   (let [[new-repository rc] (r/collection-for-types repository #{:enemy})]
-    (println "move enemy")
-    repository
-    )
-  )
+    (println "moving enemy")
+    new-repository))
+
+(defn get-player-entity [repository]
+  (let [[r0 pc] (r/collection-for-types repository #{:player})
+        player (first (vals (cl/entities pc)))]
+    [r0 player]))
+
+(defn execute-input-system [repository]
+  (let [[r0 player] (get-player-entity repository)
+        [new-repository rc] (r/collection-for-types r0 #{:key-press})]
+    (reduce (fn [acc entity]
+              (let [input (:data (e/component-of-type entity :key-press))
+                    position-component (update-position player (:input input))
+                    r1 (cr/exchange-component acc player position-component)
+                    r2 (r/remove-entity r1 entity)]
+                r2)) new-repository (vals (cl/entities rc)))))
 
 ;; screen should be in render component
 (defn execute-render-system [screen repository]
@@ -68,16 +101,16 @@
                        (r/add-entity ,, player)
                        (r/add-entity ,, enemy))
         ;; render system
+        input-system (s/create :input-system execute-input-system)
+        ;; enemy-system (s/create :enemy-system execute-enemy-move-system)
         render-system (s/create :render-system #(execute-render-system screen %))
-        enemy-system (s/create :enemy-system execute-enemy-move-system)
-        systems [render-system enemy-system]]
+        ;; systems [input-system enemy-system render-system]]
+        systems [input-system render-system]]
     (ls/start screen)
-    (loop [input (ls/get-key-blocking screen)
-           state {:systems systems :repository repository}]
-      (let [position-component (update-position player input)
-            repository0 (cr/exchange-component (:repository state) player position-component)
+    (loop [state {:systems systems :repository repository}]
+      (let [repository0 (collect-input (:repository state) screen)
             repository1 (s/execute (:systems state) repository0)]
-        (recur (ls/get-key-blocking screen)
-               (assoc state :repository repository1))))))
+        (Thread/sleep 1000)
+        (recur (assoc state :repository repository1))))))
 
 (start 40 40)
