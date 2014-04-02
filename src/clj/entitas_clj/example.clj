@@ -60,7 +60,6 @@
 
 (defn execute-enemy-move-system [repository]
   (let [[new-repository rc] (r/collection-for-types repository #{:enemy})]
-    (println "moving enemy")
     new-repository))
 
 (defn get-player-entity [repository]
@@ -97,16 +96,14 @@
         ;; enemy
         enemy0 (create-enemy 22 22)
         enemy (e/add-component enemy0 (c/create :render nil))
-        ;; add
+        ;; repository
         repository (-> (r/create)
                        (r/add-entity ,, player)
                        (r/add-entity ,, enemy))
-        ;; render system
         input-system (s/create :input-system execute-input-system)
-        ;; enemy-system (s/create :enemy-system execute-enemy-move-system)
+        enemy-system (s/create :enemy-system execute-enemy-move-system)
         render-system (s/create :render-system #(execute-render-system screen %))
-        ;; systems [input-system enemy-system render-system]]
-        systems [input-system render-system]]
+        systems [input-system enemy-system render-system]]
     (ls/start screen)
     (loop [state {:systems systems :repository repository}]
       (let [repository0 (collect-input (:repository state) screen)
