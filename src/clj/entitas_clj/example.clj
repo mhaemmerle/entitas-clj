@@ -64,7 +64,7 @@
 
 (defn get-player-entity [repository]
   (let [[r0 pc] (r/collection-for-types repository #{:player})
-        player (first (vals (cl/entities pc)))]
+        player (first (cl/entities pc))]
     [r0 player]))
 
 (defn execute-input-system [repository]
@@ -75,13 +75,13 @@
                     position-component (update-position player (:input input))
                     r1 (cr/exchange-component acc player position-component)
                     r2 (r/remove-entity r1 entity)]
-                r2)) new-repository (vals (cl/entities rc)))))
+                r2)) new-repository (cl/entities rc))))
 
 ;; screen should be in render component
 (defn execute-render-system [screen repository]
   (let [[new-repository rc] (r/collection-for-types repository #{:render})]
     (ls/clear screen)
-    (doseq [entity (vals (cl/entities rc))]
+    (doseq [entity (cl/entities rc)]
       (let [component (e/component-of-type entity :position)
             {:keys [x y char]} (:data component)]
         (ls/put-string screen x y char)))

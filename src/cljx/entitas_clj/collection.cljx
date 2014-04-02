@@ -15,7 +15,7 @@
     (init-with-matcher #(entitas-clj.matcher/all-of-set ctypes %) mname mkey)))
 
 (defn entities [collection]
-  (:entities @collection))
+  (vals (:entities @collection)))
 
 (defn type-matcher [collection]
   (:matcher @collection))

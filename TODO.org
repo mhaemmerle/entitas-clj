@@ -1,2 +1,3 @@
-* General [0/1]
+* General [0/2]
   - [ ] separate notification handling
+  - [ ] collection/entities should *only* return entities

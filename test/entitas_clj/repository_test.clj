@@ -49,12 +49,12 @@
         repo2 (r/add-component repo1 ctype entity)
         [repo3 coll1] (r/collection-for-types repo2 #{ctype})
         cft1 (get-in repo3 [:collections-for-type ctype])]
-    (is (= entity (first (vals (cl/entities coll1)))))
+    (is (= entity (first (cl/entities coll1))))
     (is (= #{coll1} cft1))
     (let [repo4 (r/remove-component repo3 ctype entity)
           [repo5 coll2] (r/collection-for-types repo4 #{ctype})
           cft2 (get-in repo4 [:collections-for-type ctype])]
-      (is (= {} (cl/entities coll2)))
+      (is (= nil (cl/entities coll2)))
       (is (= #{coll2} cft2)))))
 
 (deftest add-entity
