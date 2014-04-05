@@ -14,7 +14,7 @@
 (deftest has-component-of-type
   (let [entity (e/create :foo)
         ctype :bar
-        component (c/create ctype nil)
+        component (c/create ctype)
         new-entity (e/add-component entity component)]
     (is (= {ctype component} (:components @new-entity)))
     (is (= #{ctype} (:ctypes @new-entity)))
@@ -24,8 +24,8 @@
 (deftest has-components-of-types
   (let [ctype1 :bar
         ctype2 :baz
-        component1 (c/create ctype1 nil)
-        component2 (c/create ctype2 nil)
+        component1 (c/create ctype1)
+        component2 (c/create ctype2)
         new-entity (-> (e/create :foo)
                        (e/add-component ,, component1)
                        (e/add-component ,, component2))]
@@ -35,20 +35,20 @@
 
 (deftest components-of-type
   (let [ctype :bar
-        component (c/create ctype nil)
+        component (c/create ctype)
         entity (e/add-component (e/create :foo) component)]
     (is (= component (e/component-of-type entity ctype)))))
 
 (deftest contains-component
   (let [ctype :bar
-        component (c/create ctype nil)
+        component (c/create ctype)
         entity (e/add-component (e/create :foo) component)]
     (is (e/contains-component entity component))
     (is (not (e/contains-component entity {:type :qux})))))
 
 (deftest exchange-component
   (let [ctype :bar
-        component (c/create ctype nil)
+        component (c/create ctype)
         new-component {:type ctype :prop :a}
         entity (e/add-component (e/create :foo) component)
         new-entity (e/exchange-component entity new-component)]
@@ -57,8 +57,8 @@
 (deftest remove-component-of-type
   (let [ctype1 :bar
         ctype2 :baz
-        component1 (c/create ctype1 nil)
-        component2 (c/create ctype2 nil)
+        component1 (c/create ctype1)
+        component2 (c/create ctype2)
         entity (e/create :foo)]
     (e/add-component entity component1)
     (is (= #{ctype1} (:ctypes @entity)))

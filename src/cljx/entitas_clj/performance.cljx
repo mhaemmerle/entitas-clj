@@ -18,8 +18,8 @@
             (let [entity (e/create :foo)
                   new-acc (r/add-entity acc entity)]
               (condp = (mod i 25)
-                0 (cr/add-component new-acc entity (cm/create ctype1 nil))
-                1 (cr/add-component new-acc entity (cm/create ctype2 nil))
+                0 (cr/add-component new-acc entity (cm/create ctype1))
+                1 (cr/add-component new-acc entity (cm/create ctype2))
                 new-acc)))
           repository (range num-entities)))
 
@@ -31,8 +31,6 @@
     (doseq [n (range 100)]
       (reset! result (c/entities collection)))
     @result))
-
-
 
 (defn getting-all-entities-from-repository [repository ctype]
   (let [result (atom nil)
@@ -46,7 +44,7 @@
 
 (defn exchange-component-in-all-entities [repository entities]
   (let [[i result] (reduce (fn [[idx acc] entity]
-                             (let [r (cr/exchange-component acc entity (cm/create :foo nil))]
+                             (let [r (cr/exchange-component acc entity (cm/create :foo))]
                                [(inc idx) r])) [0 repository] entities)]
     (println "exhanged" i "components")
     result))

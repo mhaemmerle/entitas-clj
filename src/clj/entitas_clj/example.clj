@@ -11,7 +11,7 @@
 (defn create-player [x y]
   (let [entity-id :player
         position-comp (c/create :position {:x x :y y :char "X"})
-        player-comp (c/create :player nil)]
+        player-comp (c/create :player)]
     (-> (e/create entity-id)
         (e/add-component ,, position-comp)
         (e/add-component ,, player-comp))))
@@ -92,10 +92,10 @@
   (let [screen (ls/get-screen :swing {:cols width :rows height})
         ;; player
         player0 (create-player 0 0)
-        player (e/add-component player0 (c/create :render nil))
+        player (e/add-component player0 (c/create :render))
         ;; enemy
         enemy0 (create-enemy 22 22)
-        enemy (e/add-component enemy0 (c/create :render nil))
+        enemy (e/add-component enemy0 (c/create :render))
         ;; repository
         repository (-> (r/create)
                        (r/add-entity ,, player)
