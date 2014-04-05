@@ -18,6 +18,9 @@
 (defn component-of-type [entity ctype]
   (get-in @entity [:components ctype]))
 
+(defn data-for-component [entity ctype]
+  (:data (component-of-type entity ctype)))
+
 (defn contains-component [entity component]
   (not (nil? (component-of-type entity (:type component)))))
 

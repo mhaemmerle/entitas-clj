@@ -8,16 +8,20 @@
             [lanterna.screen :as ls]
             [clojure.core.async :refer [chan go put! alts! <! >! timeout]]))
 
+;; https://github.com/wooga/g10-ios/blob/develop/GameX/GameX/src/GXAddGroundSystem.m
+
 (def timeout-value 50)
 
 (defn create-player [x y]
-  (let [position-comp (c/create :position {:x x :y y :char "X"})
-        player-comp (c/create :player)]
-    (e/create :player position-comp player-comp)))
+  (e/create :player
+            (c/create :position {:x x :y y})
+            (c/create :player)
+            (c/create :render {:char "X"})))
 
 (defn create-enemy [x y]
-  (let [position-comp (c/create :position {:x x :y y :char "E"})]
-    (e/create :enemy position-comp)))
+  (e/create :enemy
+            (c/create :position {:x x :y y})
+            (c/create :render {:char "E"})))
 
 (defn handle-input [{:keys [x y] :as position} input]
   (let [[new-x new-y] (case input
@@ -65,20 +69,19 @@
                     r2 (r/remove-entity r1 entity)]
                 r2)) new-repository (cl/entities rc))))
 
-;; screen should be in render component
 (defn execute-render-system [screen repository]
   (let [[new-repository rc] (r/collection-for-types repository #{:render})]
     (ls/clear screen)
     (doseq [entity (cl/entities rc)]
-      (let [component (e/component-of-type entity :position)
-            {:keys [x y char]} (:data component)]
+      (let [{:keys [x y]} (e/data-for-component entity :position)
+            {:keys [char]} (e/data-for-component entity :render)]
         (ls/put-string screen x y char)))
     (ls/redraw screen)
     new-repository))
 
 (defn initial-state [width height]
-  (let [player (-> (create-player 0 0) (e/add-component ,, (c/create :render)))
-        enemy (-> (create-enemy 22 22) (e/add-component ,, (c/create :render)))
+  (let [player (create-player 0 0)
+        enemy (create-enemy 22 22)
         repository (-> (r/create) (r/add-entity ,, player) (r/add-entity ,, enemy))
         input-system (s/create :input-system execute-input-system)
         enemy-system (s/create :enemy-system execute-enemy-move-system)
