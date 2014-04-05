@@ -42,8 +42,9 @@
       acc)))
 
 (defn collect-input [repository screen]
-  (reduce (fn [acc entity]
-            (r/add-entity acc entity)) repository (input->entities screen)))
+  (let [input-entities (input->entities screen)]
+    (reduce (fn [acc entity]
+              (r/add-entity acc entity)) repository input-entities)))
 
 (defn execute-enemy-move-system [repository]
   (let [[new-repository rc] (r/collection-for-types repository #{:enemy})]
