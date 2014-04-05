@@ -12,15 +12,13 @@
   (let [entity-id :player
         position-comp (c/create :position {:x x :y y :char "X"})
         player-comp (c/create :player)]
-    (-> (e/create entity-id)
-        (e/add-component ,, position-comp)
-        (e/add-component ,, player-comp))))
+    (e/create entity-id position-comp player-comp)))
 
 (defn create-enemy [x y]
   (let [entity-id :enemy
         ctype :position
-        position (c/create ctype {:x x :y y :char "E"})]
-    (e/add-component (e/create entity-id) position)))
+        position-comp (c/create ctype {:x x :y y :char "E"})]
+    (e/create entity-id position-comp)))
 
 (defn handle-input [{:keys [x y] :as position} input]
   (let [[new-x new-y] (case input

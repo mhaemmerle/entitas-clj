@@ -1,3 +1,9 @@
-* General [0/2]
+* General [1/8]
   - [ ] separate notification handling
   - [ ] collection/entities should *only* return entities
+  - [X] create entity with multiple components
+  - [ ] notifications via watch/core.async
+  - [ ] easy access to components
+  - [ ] easy access to entities
+  - [ ] implement systems
+  - [ ] triggering component types, mandatory component types

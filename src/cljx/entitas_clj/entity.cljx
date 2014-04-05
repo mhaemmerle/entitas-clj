@@ -1,11 +1,13 @@
 (ns entitas-clj.entity
   (:require [clojure.set :refer [subset?]]))
 
-(defn create [id]
-  (atom {:id id
-         :creation-index nil
-         :components {}
-         :ctypes #{}}))
+(defn create [id & comps]
+  (let [components (into {} (map (fn [{:keys [type] :as comp}] [type comp]) comps))
+        ctypes (set (map :type comps))]
+    (atom {:id id
+           :creation-index nil
+           :components components
+           :ctypes ctypes})))
 
 (defn has-component-of-type [entity ctype]
   (contains? (:ctypes @entity) ctype))
