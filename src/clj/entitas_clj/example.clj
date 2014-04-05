@@ -6,7 +6,9 @@
             [entitas-clj.repository :as r]
             [entitas-clj.system :as s]
             [lanterna.screen :as ls]
-            [clojure.core.async :refer [chan go sliding-buffer put! alts! <! >!]]))
+            [clojure.core.async :refer [chan go put! alts! <! >! timeout]]))
+
+(def timeout-value 50)
 
 (defn create-player [x y]
   (let [position-comp (c/create :position {:x x :y y :char "X"})
@@ -82,27 +84,30 @@
     (ls/redraw screen)
     new-repository))
 
-(defn start [width height]
-  (let [screen (ls/get-screen :swing {:cols width :rows height})
-        ;; player
-        player0 (create-player 0 0)
-        player (e/add-component player0 (c/create :render))
-        ;; enemy
-        enemy0 (create-enemy 22 22)
-        enemy (e/add-component enemy0 (c/create :render))
-        ;; repository
-        repository (-> (r/create)
-                       (r/add-entity ,, player)
-                       (r/add-entity ,, enemy))
+(defn initial-state [width height]
+  (let [player (-> (create-player 0 0) (e/add-component ,, (c/create :render)))
+        enemy (-> (create-enemy 22 22) (e/add-component ,, (c/create :render)))
+        repository (-> (r/create) (r/add-entity ,, player) (r/add-entity ,, enemy))
         input-system (s/create :input-system execute-input-system)
         enemy-system (s/create :enemy-system execute-enemy-move-system)
+        screen (ls/get-screen :swing {:cols width :rows height})
         render-system (s/create :render-system #(execute-render-system screen %))
         systems [input-system enemy-system render-system]]
     (ls/start screen)
-    (loop [state {:systems systems :repository repository}]
-      (let [repository0 (collect-input (:repository state) screen)
-            repository1 (s/execute (:systems state) repository0)]
-        (Thread/sleep 1000)
-        (recur (assoc state :repository repository1))))))
+    {:systems systems :repository repository :screen screen}))
+
+(defn start [width height]
+  (let [command-chan (chan)
+        s (initial-state width height)]
+    (go
+     (loop [state s
+            timer (timeout timeout-value)]
+       (let [[v c] (alts! [timer command-chan])]
+         (condp = c
+           command-chan (when v
+                      (recur state timer))
+           timer (let [repository0 (collect-input (:repository state) (:screen state))
+                       repository1 (s/execute (:systems state) repository0)]
+                   (recur (assoc state :repository repository1) (timeout timeout-value)))))))))
 
 (start 40 40)
