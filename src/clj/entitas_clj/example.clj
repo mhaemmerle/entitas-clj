@@ -45,15 +45,6 @@
   (reduce (fn [acc entity]
             (r/add-entity acc entity)) repository (input->entities screen)))
 
-;; (defn create-input-emitter [screen ch]
-;;   (go (while true
-;;         (let [ctype :key-press
-;;               input (ls/get-key screen)]
-;;           (when-not (nil? input)
-;;             (let [comp (c/create ctype {:input input})
-;;                   ent (e/add-component (e/create nil) comp)]
-;;               (>! ch ent)))))))
-
 (defn execute-enemy-move-system [repository]
   (let [[new-repository rc] (r/collection-for-types repository #{:enemy})]
     new-repository))
@@ -97,10 +88,9 @@
     {:systems systems :repository repository :screen screen}))
 
 (defn start [width height]
-  (let [command-chan (chan)
-        s (initial-state width height)]
+  (let [command-chan (chan)]
     (go
-     (loop [state s
+     (loop [state (initial-state width height)
             timer (timeout timeout-value)]
        (let [[v c] (alts! [timer command-chan])]
          (condp = c
