@@ -9,16 +9,13 @@
             [clojure.core.async :refer [chan go sliding-buffer put! alts! <! >!]]))
 
 (defn create-player [x y]
-  (let [entity-id :player
-        position-comp (c/create :position {:x x :y y :char "X"})
+  (let [position-comp (c/create :position {:x x :y y :char "X"})
         player-comp (c/create :player)]
-    (e/create entity-id position-comp player-comp)))
+    (e/create :player position-comp player-comp)))
 
 (defn create-enemy [x y]
-  (let [entity-id :enemy
-        ctype :position
-        position-comp (c/create ctype {:x x :y y :char "E"})]
-    (e/create entity-id position-comp)))
+  (let [position-comp (c/create :position {:x x :y y :char "E"})]
+    (e/create :enemy position-comp)))
 
 (defn handle-input [{:keys [x y] :as position} input]
   (let [[new-x new-y] (case input
@@ -37,8 +34,7 @@
   (loop [input (ls/get-key screen)
          acc []]
     (if (not (nil? input))
-      (let [ctype :key-press
-            comp (c/create ctype {:input input})
+      (let [comp (c/create :key-press {:input input})
             new-acc (conj acc (e/add-component (e/create nil) comp))]
         (recur (ls/get-key screen) new-acc))
       acc)))
