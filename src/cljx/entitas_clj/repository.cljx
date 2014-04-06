@@ -46,7 +46,7 @@
 
 (defn collection-for-types [repository ctypes]
   (let [mtype entitas-clj.matcher/all-of-set
-        mname (m/to-name #'entitas-clj.matcher/all-of-set)]
+        mname "entitas-clj.matcher/all-of-set"]
     (collection-for-matcher repository {:mtype mtype :mname mname :ctypes ctypes})))
 
 (defn add-component [repository ctype entity]

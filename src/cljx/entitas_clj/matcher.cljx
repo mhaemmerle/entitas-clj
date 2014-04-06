@@ -25,15 +25,6 @@
 (defn just [type-a ctypes-b]
   (all-matching? #{type-a} ctypes-b))
 
-;; expects a VAR
-(defn to-name [mtype]
-  (let [m (meta mtype)
-        mns (ns-name (:ns m))
-        n (:name m)]
-    (format "%s/%s" mns n)))
-
 (defn to-key [mtype ctypes]
   (let [safe-ctypes (if (coll? ctypes) ctypes [ctypes])]
-    ;; (hash (apply str mtype safe-ctypes))
-    (apply str mtype safe-ctypes)
-    ))
+    (apply str mtype safe-ctypes)))

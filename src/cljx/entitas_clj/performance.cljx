@@ -35,7 +35,7 @@
 (defn getting-all-entities-from-repository [repository ctype]
   (let [result (atom nil)
         mtype entitas-clj.matcher/all-of-set
-        mname (m/to-name #'entitas-clj.matcher/all-of-set)
+        mname "entitas-clj.matcher/all-of-set"
         matcher-config {:mtype mtype :mname mname :ctypes #{ctype}}]
     (doseq [n (range 100)]
       (let [[new-repository entities] (r/entities-for-matcher repository matcher-config)]

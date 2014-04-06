@@ -10,7 +10,7 @@
          :remove-observers {}}))
 
 (defn init-with-types [ctypes]
-  (let [mname (m/to-name #'entitas-clj.matcher/all-of-set)
+  (let [mname "entitas-clj.matcher/all-of-set"
         mkey (m/to-key mname ctypes)]
     (init-with-matcher #(entitas-clj.matcher/all-of-set ctypes %) mname mkey)))
 
