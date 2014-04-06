@@ -27,3 +27,4 @@ pom.xml.asc
 /src/cljs/entitas_clj/performance.cljs
 /src/cljs/entitas_clj/repository.cljs
 /src/cljs/entitas_clj/system.cljs
+/resources/public/js/main.js
