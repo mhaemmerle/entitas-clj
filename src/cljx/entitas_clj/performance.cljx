@@ -7,7 +7,6 @@
             [entitas-clj.component :as cm]
             [entitas-clj.collection :as c]
             [entitas-clj.matcher :as m]
-            #+clj [criterium.core :refer [bench]]
             ))
 
 (def simple-component {:type :foo :a 1 :b 2})

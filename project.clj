@@ -1,24 +1,19 @@
 (defproject entitas-clj "0.1.0-SNAPSHOT"
   :dependencies [[org.clojure/clojure "1.5.1"]
-                 [org.clojure/core.async "0.1.278.0-76b25b-alpha"]
-                 [org.clojure/clojurescript "0.0-2173"]
-                 [shodan "0.1.0"]
-                 [clojure-lanterna "0.9.4"]]
-  :profiles {:dev {:dependencies [[criterium "0.4.3"]]
-                   :plugins [[com.keminglabs/cljx "0.3.2"]
-                             [lein-cljsbuild "1.0.2"]
+                 [org.clojure/core.async "0.1.278.0-76b25b-alpha"]]
+  :profiles {:dev {:plugins [[com.keminglabs/cljx "0.3.2"]
                              [lein-marginalia "0.7.1"]]}}
   :source-paths ["src/clj"]
   :cljx {:builds [{:source-paths ["src/cljx"]
-                   :output-path "src/clj"
+                   :output-path "target/classes"
                    :rules :clj}
                   {:source-paths ["src/cljx"]
-                   :output-path "src/cljs"
+                   :output-path "target/classes"
                    :rules :cljs}]}
   :cljsbuild {:builds [{:source-paths ["src/cljs"]
                         :compiler {:output-to "resources/public/js/main.js"
                                    :optimizations :whitespace
                                    :pretty-print true}}]}
-  :jvm-opts ["-server"]
   :hooks [cljx.hooks]
+  :jvm-opts ["-server"]
   :main entitas-clj.performance)
