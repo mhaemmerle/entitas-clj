@@ -10,5 +10,7 @@
 
     $ lein cljx
     $ lein cljsbuild once
+    
+### Documentation
 
-See also http://mhaemmerle.github.io/entitas-clj/
+http://mhaemmerle.github.io/entitas-clj/
