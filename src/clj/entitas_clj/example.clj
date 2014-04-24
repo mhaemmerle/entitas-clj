@@ -8,8 +8,6 @@
             [lanterna.screen :as ls]
             [clojure.core.async :refer [chan go put! alts! <! >! timeout]]))
 
-;; https://github.com/wooga/g10-ios/blob/develop/GameX/GameX/src/GXAddGroundSystem.m
-
 (def timeout-value 50)
 
 (defn create-player [x y]

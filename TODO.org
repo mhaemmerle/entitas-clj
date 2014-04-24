@@ -7,3 +7,5 @@
   - [ ] easy access to entities
   - [ ] implement systems
   - [ ] triggering component types, mandatory component types
+
+;; https://github.com/wooga/g10-ios/blob/develop/GameX/GameX/src/GXAddGroundSystem.m
