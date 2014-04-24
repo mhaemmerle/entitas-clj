@@ -3029,54 +3029,71 @@ net.brehaut.ClojureTools = (function (SH) {
   };
 })(SyntaxHighlighter);
 </script><title>entitas-clj -- Marginalia</title></head><body><table><tr><td class="docs"><div class="header"><h1 class="project-name">entitas-clj</h1><h2 class="project-version">0.1.0-SNAPSHOT</h2><br />
-</div><div class="dependencies"><h3>dependencies</h3><table><tr><td class="dep-name">org.clojure/clojure</td><td class="dotted"><hr /></td><td class="dep-version">1.5.1</td></tr></table></div></td><td class="codes" style="text-align: center; vertical-align: middle;color: #666;padding-right:20px"><br /><br /><br />(this space intentionally left almost blank)</td></tr><tr><td class="docs"><div class="toc"><a name="toc"><h3>namespaces</h3></a><ul><li><a href="#entitas-clj.collection">entitas-clj.collection</a></li><li><a href="#entitas-clj.core">entitas-clj.core</a></li><li><a href="#entitas-clj.entity">entitas-clj.entity</a></li><li><a href="#entitas-clj.macros">entitas-clj.macros</a></li><li><a href="#entitas-clj.matcher">entitas-clj.matcher</a></li><li><a href="#entitas-clj.performance">entitas-clj.performance</a></li><li><a href="#entitas-clj.repository">entitas-clj.repository</a></li><li><a href="#entitas-clj.system">entitas-clj.system</a></li><li><a href="#entitas-clj.collection">entitas-clj.collection</a></li><li><a href="#entitas-clj.core">entitas-clj.core</a></li><li><a href="#entitas-clj.entity">entitas-clj.entity</a></li><li><a href="#entitas-clj.matcher">entitas-clj.matcher</a></li><li><a href="#entitas-clj.performance">entitas-clj.performance</a></li><li><a href="#entitas-clj.repository">entitas-clj.repository</a></li><li><a href="#entitas-clj.system">entitas-clj.system</a></li></ul></div></td><td class="codes">&nbsp;</td></tr><tr><td class="docs"><div class="docs-header"><a class="anchor" href="#entitas-clj.collection" name="entitas-clj.collection"><h1 class="project-name">entitas-clj.collection</h1><a class="toc-link" href="#toc">toc</a></a></div></td><td class="codes" /></tr><tr><td class="docs">
+</div><div class="dependencies"><h3>dependencies</h3><table><tr><td class="dep-name">org.clojure/clojure</td><td class="dotted"><hr /></td><td class="dep-version">1.5.1</td></tr><tr><td class="dep-name">org.clojure/core.async</td><td class="dotted"><hr /></td><td class="dep-version">0.1.278.0-76b25b-alpha</td></tr></table></div></td><td class="codes" style="text-align: center; vertical-align: middle;color: #666;padding-right:20px"><br /><br /><br />(this space intentionally left almost blank)</td></tr><tr><td class="docs"><div class="toc"><a name="toc"><h3>namespaces</h3></a><ul><li><a href="#entitas-clj.collection">entitas-clj.collection</a></li><li><a href="#entitas-clj.component">entitas-clj.component</a></li><li><a href="#entitas-clj.core">entitas-clj.core</a></li><li><a href="#entitas-clj.entity">entitas-clj.entity</a></li><li><a href="#entitas-clj.example">entitas-clj.example</a></li><li><a href="#entitas-clj.macros">entitas-clj.macros</a></li><li><a href="#entitas-clj.matcher">entitas-clj.matcher</a></li><li><a href="#entitas-clj.performance">entitas-clj.performance</a></li><li><a href="#entitas-clj.repository">entitas-clj.repository</a></li><li><a href="#entitas-clj.system">entitas-clj.system</a></li></ul></div></td><td class="codes">&nbsp;</td></tr><tr><td class="docs"><div class="docs-header"><a class="anchor" href="#entitas-clj.collection" name="entitas-clj.collection"><h1 class="project-name">entitas-clj.collection</h1><a class="toc-link" href="#toc">toc</a></a></div></td><td class="codes" /></tr><tr><td class="docs">
 </td><td class="codes"><pre class="brush: clojure">(ns entitas-clj.collection
   (:require [entitas-clj.matcher :as m]))</pre></td></tr><tr><td class="docs">
-</td><td class="codes"><pre class="brush: clojure">(defn init-with-matcher [matcher]
-  {:matcher matcher
-   :entities {}
-   :add-observers #{}
-   :remove-observers {}})</pre></td></tr><tr><td class="docs">
-</td><td class="codes"><pre class="brush: clojure">(defn init-with-types [types]
-  (init-with-matcher #(m/all-of-set types %)))</pre></td></tr><tr><td class="docs">
+</td><td class="codes"><pre class="brush: clojure">(defn init-with-matcher [matcher mname mkey]
+  (atom {:mkey mkey
+         :name mname
+         :matcher matcher
+         :entities {}
+         :add-observers #{}
+         :remove-observers {}}))</pre></td></tr><tr><td class="docs">
+</td><td class="codes"><pre class="brush: clojure">(defn init-with-types [ctypes]
+  (let [mname &quot;entitas-clj.matcher/all-of-set&quot;
+        mkey (m/to-key mname ctypes)]
+    (init-with-matcher #(entitas-clj.matcher/all-of-set ctypes %) mname mkey)))</pre></td></tr><tr><td class="docs">
 </td><td class="codes"><pre class="brush: clojure">(defn entities [collection]
-  (:entities collection))</pre></td></tr><tr><td class="docs">
+  (vals (:entities @collection)))</pre></td></tr><tr><td class="docs">
 </td><td class="codes"><pre class="brush: clojure">(defn type-matcher [collection]
-  (:matcher collection))</pre></td></tr><tr><td class="docs"><p>TODO separate notification handling</p>
+  (:matcher @collection))</pre></td></tr><tr><td class="docs">
 </td><td class="codes"><pre class="brush: clojure">(defn notify [observers event-type collection entity]
   (doseq [observer observers]
     (observer entity collection)))</pre></td></tr><tr><td class="docs">
-</td><td class="codes"><pre class="brush: clojure">(defn add-entity [collection {:keys [creation-index] :as entity}]
-  (let [path [:entities creation-index]
-        new-collection (if (nil? (get-in collection path))
-                         (assoc-in collection path entity)
-                         collection)]
-    (notify (:add-observers collection) :added collection entity)
-    new-collection))</pre></td></tr><tr><td class="docs">
-</td><td class="codes"><pre class="brush: clojure">(defn exchange-entity [collection {:keys [creation-index] :as entity}]
-  (if (nil? (get-in collection [:entities creation-index]))
-    (add-entity collection entity)
-    (do
-      (notify (:remove-observers collection) :removed collection entity)
-      (notify (:add-observers collection) :added collection entity)
-      collection)))</pre></td></tr><tr><td class="docs">
-</td><td class="codes"><pre class="brush: clojure">(defn remove-entity [collection {:keys [creation-index] :as entity}]
-  (let [path [:entities creation-index]]
-    (if (nil? (get-in collection path))
+</td><td class="codes"><pre class="brush: clojure">(defn do-add [c path entity]
+  (if (nil? (get-in c path))
+    (assoc-in c path entity)
+    c))</pre></td></tr><tr><td class="docs">
+</td><td class="codes"><pre class="brush: clojure">(defn add-entity [collection entity]
+  (let [path [:entities (:creation-index @entity)]]
+    (swap! collection do-add path entity)
+    (notify (:add-observers @collection) :added collection entity)
+    collection))</pre></td></tr><tr><td class="docs">
+</td><td class="codes"><pre class="brush: clojure">(defn exchange-entity [collection entity]
+  (let [path [:entities (:creation-index @entity)]]
+    (if (nil? (get-in @collection path))
+      (add-entity collection entity)
+      (do
+        (swap! collection assoc-in path entity)
+        (notify (:remove-observers @collection) :removed collection entity)
+        (notify (:add-observers @collection) :added collection entity)
+        collection))))</pre></td></tr><tr><td class="docs">
+</td><td class="codes"><pre class="brush: clojure">(defn remove-entity [collection entity]
+  (let [creation-index (:creation-index @entity)
+        path [:entities creation-index]]
+    (if (nil? (get-in @collection path))
       collection
-      (let [new-collection (update-in collection path dissoc creation-index)]
-        (notify (:remove-observers collection) :removed new-collection entity)
-        new-collection))))</pre></td></tr><tr><td class="docs">
+      (do
+        (swap! collection update-in [:entities] dissoc creation-index)
+        (notify (:remove-observers @collection) :removed collection entity)
+        collection))))</pre></td></tr><tr><td class="docs">
 </td><td class="codes"><pre class="brush: clojure">(defn add-observer [collection observer event-type]
   (let [path (case event-type
                :added [:add-observers]
                :removed [:remove-observers])]
-    (update-in collection path conj observer)))</pre></td></tr><tr><td class="docs">
+    (swap! collection update-in path conj observer)))</pre></td></tr><tr><td class="docs">
 </td><td class="codes"><pre class="brush: clojure">(defn remove-observer [collection observer event-type]
   (let [path (case event-type
                :added [:add-observers]
                :removed [:remove-observers])]
-    (update-in collection path remove observer)))</pre></td></tr><tr><td class="docs"><p>This file autogenerated from src/cljx/entitas_clj/collection.cljx</p>
+    (swap! collection update-in path remove observer)))</pre></td></tr><tr><td class="docs"><p>This file autogenerated from src/cljx/entitas_clj/collection.cljx</p>
+</td><td class="codes"></td></tr><tr><td class="spacer docs">&nbsp;</td><td class="codes" /></tr><tr><td class="docs"><div class="docs-header"><a class="anchor" href="#entitas-clj.component" name="entitas-clj.component"><h1 class="project-name">entitas-clj.component</h1><a class="toc-link" href="#toc">toc</a></a></div></td><td class="codes" /></tr><tr><td class="docs">
+</td><td class="codes"><pre class="brush: clojure">(ns entitas-clj.component)</pre></td></tr><tr><td class="docs">
+</td><td class="codes"><pre class="brush: clojure">(defn create
+  ([type]
+     (create type nil))
+  ([type data]
+     {:type type :data data}))</pre></td></tr><tr><td class="docs"><p>This file autogenerated from src/cljx/entitas_clj/component.cljx</p>
 </td><td class="codes"></td></tr><tr><td class="spacer docs">&nbsp;</td><td class="codes" /></tr><tr><td class="docs"><div class="docs-header"><a class="anchor" href="#entitas-clj.core" name="entitas-clj.core"><h1 class="project-name">entitas-clj.core</h1><a class="toc-link" href="#toc">toc</a></a></div></td><td class="codes" /></tr><tr><td class="docs">
 </td><td class="codes"><pre class="brush: clojure">(ns entitas-clj.core
   (:require [entitas-clj.entity :as e]
@@ -3084,37 +3101,39 @@ net.brehaut.ClojureTools = (function (SH) {
 </td><td class="codes"><pre class="brush: clojure">      (set! *warn-on-reflection* true)</pre></td></tr><tr><td class="docs">
 </td><td class="codes"><pre class="brush: clojure">(defn add-component [repository entity component]
   (let [new-entity (e/add-component entity component)]
-    [(r/add-component repository (:type component) new-entity) new-entity]))</pre></td></tr><tr><td class="docs">
+    (r/add-component repository (:type component) new-entity)))</pre></td></tr><tr><td class="docs">
 </td><td class="codes"><pre class="brush: clojure">(defn exchange-component [repository entity component]
   (let [new-entity (e/exchange-component entity component)]
-    [(r/exchange-component repository (:type component) new-entity) new-entity]))</pre></td></tr><tr><td class="docs">
+    (r/exchange-component repository (:type component) new-entity)))</pre></td></tr><tr><td class="docs">
 </td><td class="codes"><pre class="brush: clojure">(defn remove-component [repository entity ctype]
   (let [new-entity (e/remove-component-of-type entity ctype)]
-    [(r/remove-component repository ctype new-entity) new-entity]))</pre></td></tr><tr><td class="docs">
-</td><td class="codes"><pre class="brush: clojure">(defn destroy-entity [repository entity]
-  (reduce (fn [[r e] ctype]
-            (remove-component r e ctype)) [repository entity] (:ctypes entity)))</pre></td></tr><tr><td class="docs"><p>This file autogenerated from src/cljx/entitas_clj/core.cljx</p>
+    (r/remove-component repository ctype new-entity)))</pre></td></tr><tr><td class="docs"><p>This file autogenerated from src/cljx/entitas_clj/core.cljx</p>
 </td><td class="codes"></td></tr><tr><td class="spacer docs">&nbsp;</td><td class="codes" /></tr><tr><td class="docs"><div class="docs-header"><a class="anchor" href="#entitas-clj.entity" name="entitas-clj.entity"><h1 class="project-name">entitas-clj.entity</h1><a class="toc-link" href="#toc">toc</a></a></div></td><td class="codes" /></tr><tr><td class="docs">
 </td><td class="codes"><pre class="brush: clojure">(ns entitas-clj.entity
   (:require [clojure.set :refer [subset?]]))</pre></td></tr><tr><td class="docs">
-</td><td class="codes"><pre class="brush: clojure">(defn new [id]
-  {:id id
-   :creation-index nil
-   :components {}
-   :ctypes #{}})</pre></td></tr><tr><td class="docs">
+</td><td class="codes"><pre class="brush: clojure">(defn create [id &amp; comps]
+  (let [components (into {} (map (fn [{:keys [type] :as comp}] [type comp]) comps))
+        ctypes (set (map :type comps))]
+    (atom {:id id
+           :creation-index nil
+           :components components
+           :ctypes ctypes})))</pre></td></tr><tr><td class="docs">
 </td><td class="codes"><pre class="brush: clojure">(defn has-component-of-type [entity ctype]
-  (contains? (:ctypes entity) ctype))</pre></td></tr><tr><td class="docs">
+  (contains? (:ctypes @entity) ctype))</pre></td></tr><tr><td class="docs">
 </td><td class="codes"><pre class="brush: clojure">(defn has-components-of-types [entity ctypes]
-  (subset? ctypes (:ctypes entity)))</pre></td></tr><tr><td class="docs">
+  (subset? ctypes (:ctypes @entity)))</pre></td></tr><tr><td class="docs">
 </td><td class="codes"><pre class="brush: clojure">(defn component-of-type [entity ctype]
-  (get-in entity [:components ctype]))</pre></td></tr><tr><td class="docs">
+  (get-in @entity [:components ctype]))</pre></td></tr><tr><td class="docs">
+</td><td class="codes"><pre class="brush: clojure">(defn data-for-component [entity ctype]
+  (:data (component-of-type entity ctype)))</pre></td></tr><tr><td class="docs">
 </td><td class="codes"><pre class="brush: clojure">(defn contains-component [entity component]
   (not (nil? (component-of-type entity (:type component)))))</pre></td></tr><tr><td class="docs">
 </td><td class="codes"><pre class="brush: clojure">(defn- do-add [entity component]
   (let [ctype (:type component)]
-    (-&gt; entity
-        (update-in ,, [:ctypes] conj ctype)
-        (assoc-in ,, [:components ctype] component))))</pre></td></tr><tr><td class="docs">
+    (swap! entity #(-&gt; %
+                       (update-in ,, [:ctypes] conj ctype)
+                       (assoc-in ,, [:components ctype] component))))
+  entity)</pre></td></tr><tr><td class="docs">
 </td><td class="codes"><pre class="brush: clojure">(defn add-component [entity component]
   (if (not (has-component-of-type entity (:type component)))
     (do-add entity component)
@@ -3122,12 +3141,103 @@ net.brehaut.ClojureTools = (function (SH) {
 </td><td class="codes"><pre class="brush: clojure">(defn exchange-component [entity component]
   (do-add entity component))</pre></td></tr><tr><td class="docs">
 </td><td class="codes"><pre class="brush: clojure">(defn remove-component-of-type [entity ctype]
-  (if (has-component-of-type entity ctype)
-    (-&gt; entity
-        (update-in ,, [:ctypes] #(set (remove #{ctype} %)))
-        (update-in ,, [:components] #(dissoc % ctype)))
-    entity))</pre></td></tr><tr><td class="docs"><p>This file autogenerated from src/cljx/entitas_clj/entity.cljx</p>
-</td><td class="codes"></td></tr><tr><td class="spacer docs">&nbsp;</td><td class="codes" /></tr><tr><td class="docs"><div class="docs-header"><a class="anchor" href="#entitas-clj.macros" name="entitas-clj.macros"><h1 class="project-name">entitas-clj.macros</h1><a class="toc-link" href="#toc">toc</a></a></div></td><td class="codes" /></tr><tr><td class="docs">
+  (when (has-component-of-type entity ctype)
+    (swap! entity (fn [a]
+                    (update-in a [:ctypes] #(set (remove #{ctype} %)))
+                    (update-in a [:components] #(dissoc % ctype)))))
+  entity)</pre></td></tr><tr><td class="docs"><p>This file autogenerated from src/cljx/entitas_clj/entity.cljx</p>
+</td><td class="codes"></td></tr><tr><td class="spacer docs">&nbsp;</td><td class="codes" /></tr><tr><td class="docs"><div class="docs-header"><a class="anchor" href="#entitas-clj.example" name="entitas-clj.example"><h1 class="project-name">entitas-clj.example</h1><a class="toc-link" href="#toc">toc</a></a></div></td><td class="codes" /></tr><tr><td class="docs">
+</td><td class="codes"><pre class="brush: clojure">(ns entitas-clj.example
+  (:require [entitas-clj.core :as cr]
+            [entitas-clj.component :as c]
+            [entitas-clj.collection :as cl]
+            [entitas-clj.entity :as e]
+            [entitas-clj.repository :as r]
+            [entitas-clj.system :as s]
+            [lanterna.screen :as ls]
+            [clojure.core.async :refer [chan go put! alts! &lt;! &gt;! timeout]]))</pre></td></tr><tr><td class="docs">
+</td><td class="codes"><pre class="brush: clojure">(def timeout-value 50)</pre></td></tr><tr><td class="docs">
+</td><td class="codes"><pre class="brush: clojure">(defn create-player [x y]
+  (e/create :player
+            (c/create :position {:x x :y y})
+            (c/create :player)
+            (c/create :render {:char &quot;X&quot;})))</pre></td></tr><tr><td class="docs">
+</td><td class="codes"><pre class="brush: clojure">(defn create-enemy [x y]
+  (e/create :enemy
+            (c/create :position {:x x :y y})
+            (c/create :render {:char &quot;E&quot;})))</pre></td></tr><tr><td class="docs">
+</td><td class="codes"><pre class="brush: clojure">(defn handle-input [{:keys [x y] :as position} input]
+  (let [[new-x new-y] (case input
+                        :left [(- x 1) y]
+                        :right [(inc x) y]
+                        :up [x (- y 1)]
+                        :down [x (inc y)]
+                        [x y])]
+    (assoc position :x new-x :y new-y)))</pre></td></tr><tr><td class="docs">
+</td><td class="codes"><pre class="brush: clojure">(defn update-position [entity input]
+  (let [component (e/component-of-type entity :position)]
+    (update-in component [:data] handle-input input)))</pre></td></tr><tr><td class="docs">
+</td><td class="codes"><pre class="brush: clojure">(defn input-&gt;entities [screen]
+  (loop [input (ls/get-key screen)
+         acc []]
+    (if (not (nil? input))
+      (let [comp (c/create :key-press {:input input})
+            new-acc (conj acc (e/add-component (e/create nil) comp))]
+        (recur (ls/get-key screen) new-acc))
+      acc)))</pre></td></tr><tr><td class="docs">
+</td><td class="codes"><pre class="brush: clojure">(defn collect-input [repository screen]
+  (let [input-entities (input-&gt;entities screen)]
+    (reduce (fn [acc entity]
+              (r/add-entity acc entity)) repository input-entities)))</pre></td></tr><tr><td class="docs">
+</td><td class="codes"><pre class="brush: clojure">(defn execute-enemy-move-system [repository]
+  (let [[new-repository rc] (r/collection-for-types repository #{:enemy})]
+    new-repository))</pre></td></tr><tr><td class="docs">
+</td><td class="codes"><pre class="brush: clojure">(defn get-player-entity [repository]
+  (let [[r0 pc] (r/collection-for-types repository #{:player})
+        player (first (cl/entities pc))]
+    [r0 player]))</pre></td></tr><tr><td class="docs">
+</td><td class="codes"><pre class="brush: clojure">(defn execute-input-system [repository]
+  (let [[r0 player] (get-player-entity repository)
+        [new-repository rc] (r/collection-for-types r0 #{:key-press})]
+    (reduce (fn [acc entity]
+              (let [input (:data (e/component-of-type entity :key-press))
+                    position-component (update-position player (:input input))
+                    r1 (cr/exchange-component acc player position-component)
+                    r2 (r/remove-entity r1 entity)]
+                r2)) new-repository (cl/entities rc))))</pre></td></tr><tr><td class="docs">
+</td><td class="codes"><pre class="brush: clojure">(defn execute-render-system [screen repository]
+  (let [[new-repository rc] (r/collection-for-types repository #{:render})]
+    (ls/clear screen)
+    (doseq [entity (cl/entities rc)]
+      (let [{:keys [x y]} (e/data-for-component entity :position)
+            {:keys [char]} (e/data-for-component entity :render)]
+        (ls/put-string screen x y char)))
+    (ls/redraw screen)
+    new-repository))</pre></td></tr><tr><td class="docs">
+</td><td class="codes"><pre class="brush: clojure">(defn initial-state [width height]
+  (let [player (create-player 0 0)
+        enemy (create-enemy 22 22)
+        repository (-&gt; (r/create) (r/add-entity ,, player) (r/add-entity ,, enemy))
+        input-system (s/create :input-system execute-input-system)
+        enemy-system (s/create :enemy-system execute-enemy-move-system)
+        screen (ls/get-screen :swing {:cols width :rows height})
+        render-system (s/create :render-system #(execute-render-system screen %))
+        systems [input-system enemy-system render-system]]
+    (ls/start screen)
+    {:systems systems :repository repository :screen screen}))</pre></td></tr><tr><td class="docs">
+</td><td class="codes"><pre class="brush: clojure">(defn start [width height]
+  (let [command-chan (chan)]
+    (go
+     (loop [state (initial-state width height)
+            timer (timeout timeout-value)]
+       (let [[v c] (alts! [timer command-chan])]
+         (condp = c
+           command-chan (when v
+                      (recur state timer))
+           timer (let [repository0 (collect-input (:repository state) (:screen state))
+                       repository1 (s/execute (:systems state) repository0)]
+                   (recur (assoc state :repository repository1) (timeout timeout-value)))))))))</pre></td></tr><tr><td class="docs">
+</td><td class="codes"><pre class="brush: clojure">(start 40 40)</pre></td></tr><tr><td class="spacer docs">&nbsp;</td><td class="codes" /></tr><tr><td class="docs"><div class="docs-header"><a class="anchor" href="#entitas-clj.macros" name="entitas-clj.macros"><h1 class="project-name">entitas-clj.macros</h1><a class="toc-link" href="#toc">toc</a></a></div></td><td class="codes" /></tr><tr><td class="docs">
 </td><td class="codes"><pre class="brush: clojure">(ns entitas-clj.macros)</pre></td></tr><tr><td class="docs">
 </td><td class="codes"><pre class="brush: clojure">(defmacro with-time [&amp; body]
   (let [fname (first (flatten body))]
@@ -3156,24 +3266,25 @@ net.brehaut.ClojureTools = (function (SH) {
   (all-matching? #{type-a} ctypes-b))</pre></td></tr><tr><td class="docs">
 </td><td class="codes"><pre class="brush: clojure">(defn to-key [mtype ctypes]
   (let [safe-ctypes (if (coll? ctypes) ctypes [ctypes])]
-    (hash (apply str mtype safe-ctypes))))</pre></td></tr><tr><td class="docs"><p>This file autogenerated from src/cljx/entitas_clj/matcher.cljx</p>
+    (apply str mtype safe-ctypes)))</pre></td></tr><tr><td class="docs"><p>This file autogenerated from src/cljx/entitas_clj/matcher.cljx</p>
 </td><td class="codes"></td></tr><tr><td class="spacer docs">&nbsp;</td><td class="codes" /></tr><tr><td class="docs"><div class="docs-header"><a class="anchor" href="#entitas-clj.performance" name="entitas-clj.performance"><h1 class="project-name">entitas-clj.performance</h1><a class="toc-link" href="#toc">toc</a></a></div></td><td class="codes" /></tr><tr><td class="docs">
 </td><td class="codes"><pre class="brush: clojure">(ns entitas-clj.performance
         (:gen-class)
   (:require [entitas-clj.core :as cr]
             [entitas-clj.repository :as r]
             [entitas-clj.entity :as e]
+            [entitas-clj.component :as cm]
             [entitas-clj.collection :as c]
-            [entitas-clj.matcher :as m]
-                  [criterium.core :refer [bench]]))</pre></td></tr><tr><td class="docs">
+            [entitas-clj.matcher :as m]))</pre></td></tr><tr><td class="docs">
 </td><td class="codes"><pre class="brush: clojure">(def simple-component {:type :foo :a 1 :b 2})
 (def another-simple-component {:type :bar :x 1 :y 2})</pre></td></tr><tr><td class="docs">
 </td><td class="codes"><pre class="brush: clojure">(defn entry-creation-bench [repository num-entities ctype1 ctype2]
   (reduce (fn [acc i]
-            (let [[new-acc entity] (r/add-entity acc (e/new :foo))]
+            (let [entity (e/create :foo)
+                  new-acc (r/add-entity acc entity)]
               (condp = (mod i 25)
-                0 (first (cr/add-component new-acc entity {:type ctype1}))
-                1 (first (cr/add-component new-acc entity {:type ctype2}))
+                0 (cr/add-component new-acc entity (cm/create ctype1))
+                1 (cr/add-component new-acc entity (cm/create ctype2))
                 new-acc)))
           repository (range num-entities)))</pre></td></tr><tr><td class="docs">
 </td><td class="codes"><pre class="brush: clojure">(defn collection-creation-bench [repository ctype]
@@ -3185,21 +3296,22 @@ net.brehaut.ClojureTools = (function (SH) {
     @result))</pre></td></tr><tr><td class="docs">
 </td><td class="codes"><pre class="brush: clojure">(defn getting-all-entities-from-repository [repository ctype]
   (let [result (atom nil)
-        matcher-config {:mtype m/all-of-set :ctypes #{ctype}}]
+        mtype entitas-clj.matcher/all-of-set
+        mname &quot;entitas-clj.matcher/all-of-set&quot;
+        matcher-config {:mtype mtype :mname mname :ctypes #{ctype}}]
     (doseq [n (range 100)]
       (let [[new-repository entities] (r/entities-for-matcher repository matcher-config)]
         (reset! result entities)))
     @result))</pre></td></tr><tr><td class="docs">
 </td><td class="codes"><pre class="brush: clojure">(defn exchange-component-in-all-entities [repository entities]
   (let [[i result] (reduce (fn [[idx acc] entity]
-                             (let [[r _] (cr/exchange-component acc entity {:type :foo})]
+                             (let [r (cr/exchange-component acc entity (cm/create :foo))]
                                [(inc idx) r])) [0 repository] entities)]
     (println &quot;exhanged&quot; i &quot;components&quot;)
     result))</pre></td></tr><tr><td class="docs">
 </td><td class="codes"><pre class="brush: clojure">(defn destroy-all-entities [repository]
   (reduce (fn [acc entity]
-            (let [[r _] (cr/destroy-entity acc entity)]
-              r)) repository (r/all-entities repository)))</pre></td></tr><tr><td class="docs">
+            (r/remove-entity acc entity)) repository (r/all-entities repository)))</pre></td></tr><tr><td class="docs">
 </td><td class="codes"><pre class="brush: clojure">(defmacro with-time [&amp; body]
   (let [fname (first (flatten body))]
     `(let [start-time# (System/currentTimeMillis)
@@ -3209,7 +3321,7 @@ net.brehaut.ClojureTools = (function (SH) {
 </td><td class="codes"><pre class="brush: clojure">(defn run-test [entity-count]
   (let [ctype1 :foo
         ctype2 :bar
-        r1 (with-time (entry-creation-bench (r/new) entity-count ctype1 ctype2))
+        r1 (with-time (entry-creation-bench (r/create) entity-count ctype1 ctype2))
         [r2 c1] (with-time (collection-creation-bench r1 ctype1))
         c2 (with-time (getting-all-entities-initially c1))
         c3 (with-time (getting-all-entities-from-repository r2 ctype1))
@@ -3223,377 +3335,117 @@ net.brehaut.ClojureTools = (function (SH) {
   (:require [entitas-clj.entity :as e]
             [entitas-clj.collection :as c]
             [entitas-clj.matcher :as m]))</pre></td></tr><tr><td class="docs">
-</td><td class="codes"><pre class="brush: clojure">(defn new []
+</td><td class="codes"><pre class="brush: clojure">(defn create []
   {:entities {}
    :collections {}
    :collections-for-type {}
    :current-index 0})</pre></td></tr><tr><td class="docs">
 </td><td class="codes"><pre class="brush: clojure">(defn all-entities [repository]
   (vals (:entities repository)))</pre></td></tr><tr><td class="docs">
-</td><td class="codes"><pre class="brush: clojure">(defn add-entity [{:keys [current-index] :as repository} entity]
-  (let [new-entity (assoc entity :creation-index current-index)
-        new-repository (-&gt; repository
-                           (assoc-in ,, [:entities current-index] new-entity)
-                           (update-in ,, [:current-index] inc))]
-    [new-repository new-entity]))</pre></td></tr><tr><td class="docs">
-</td><td class="codes"><pre class="brush: clojure">(defn remove-entity [repository entity]
-  (update-in repository [:entities] dissoc (:creation-index entity)))</pre></td></tr><tr><td class="docs">
 </td><td class="codes"><pre class="brush: clojure">(defn contains-entity [repository entity]
-  (not (nil? (get-in repository [:entities (:creation-index entity)]))))</pre></td></tr><tr><td class="docs">
+  (not (nil? (get-in repository [:entities (:creation-index @entity)]))))</pre></td></tr><tr><td class="docs">
 </td><td class="codes"><pre class="brush: clojure">(defn internal-collections-for-type [repository ctype]
   (or (get-in repository [:collections-for-type ctype]) #{}))</pre></td></tr><tr><td class="docs">
-</td><td class="codes"><pre class="brush: clojure">(defn memoize-matcher [repository {:keys [mtype ctypes] :as matcher-config}]
-  (let [matcher #(mtype ctypes %)]
-    (reduce (fn [acc entity]
-              (if (matcher (:ctypes entity))
-                (c/add-entity acc entity)
-                acc))
-            (c/init-with-matcher matcher) (all-entities repository))))</pre></td></tr><tr><td class="docs">
-</td><td class="codes"><pre class="brush: clojure">(defn collection-for-matcher [repository {:keys [mtype ctypes] :as matcher-config}]
-  (let [mkey (m/to-key mtype ctypes)]
-    (let [collection (get-in repository [:collections mkey])]
-      (if (not (nil? collection))
-        [repository collection]
-        (let [mcoll (memoize-matcher repository matcher-config)]
-          [(update-in repository [:collections] assoc mkey mcoll) mcoll])))))</pre></td></tr><tr><td class="docs">
+</td><td class="codes"><pre class="brush: clojure">(defn memoize-matcher [repository {:keys [mtype mname ctypes] :as matcher-config}]
+  (let [matcher #(mtype ctypes %)
+        mkey (m/to-key mname ctypes)
+        mcoll (reduce (fn [acc entity]
+                        (if (matcher (:ctypes @entity))
+                          (c/add-entity acc entity)
+                          acc))
+                      (c/init-with-matcher matcher mname mkey) (all-entities repository))
+        r0 (update-in repository [:collections] assoc mkey mcoll)
+        r1 (reduce (fn [acc ctype]
+                     (let [f (fnil (fn [colls]
+                                     (conj colls mcoll)) #{})]
+                       (update-in acc [:collections-for-type ctype] f))) r0 ctypes)]
+    [r1 mcoll]))</pre></td></tr><tr><td class="docs">
+</td><td class="codes"><pre class="brush: clojure">(defn collection-for-matcher [repository {:keys [mtype mname ctypes] :as matcher-config}]
+  (let [mkey (m/to-key mname ctypes)
+        collection (get-in repository [:collections mkey])]
+    (if (nil? collection)
+      (memoize-matcher repository matcher-config)
+      [repository collection])))</pre></td></tr><tr><td class="docs">
 </td><td class="codes"><pre class="brush: clojure">(defn entities-for-matcher [repository matcher-config]
   (let [[new-repository collection] (collection-for-matcher repository matcher-config)]
     [new-repository (c/entities collection)]))</pre></td></tr><tr><td class="docs">
 </td><td class="codes"><pre class="brush: clojure">(defn collection-for-types [repository ctypes]
-  (let [mtype m/all-of-set
-        mkey (m/to-key mtype ctypes)]
-    (collection-for-matcher repository {:mtype mtype :ctypes ctypes})))</pre></td></tr><tr><td class="docs">
-</td><td class="codes"><pre class="brush: clojure">(defn add-component [repository ctype {:keys [creation-index] :as entity}]
-  (let [r1 (assoc-in repository [:entities creation-index] entity)
-        f (fn [collection]
-            (if ((:matcher collection) (:ctypes entity))
+  (let [mtype entitas-clj.matcher/all-of-set
+        mname &quot;entitas-clj.matcher/all-of-set&quot;]
+    (collection-for-matcher repository {:mtype mtype :mname mname :ctypes ctypes})))</pre></td></tr><tr><td class="docs">
+</td><td class="codes"><pre class="brush: clojure">(defn add-component [repository ctype entity]
+  (let [f (fn [collection]
+            (if ((:matcher @collection) (:ctypes @entity))
               (c/add-entity collection entity)
               collection))
-        cft (internal-collections-for-type r1 ctype)
-        f2 (if (= 0 (count cft))
-             (let [m #(m/just ctype %)
-                   c (c/init-with-matcher m)]
-               [(f c)])
-             (vec (map f cft)))]
-    (assoc-in r1 [:collections-for-type ctype] f2)))</pre></td></tr><tr><td class="docs">
-</td><td class="codes"><pre class="brush: clojure">(defn exchange-component [repository ctype {:keys [creation-index] :as entity}]
+        cft (set (map f (internal-collections-for-type repository ctype)))]
+    (if (empty? cft)
+      repository
+      (assoc-in repository [:collections-for-type ctype] cft))))</pre></td></tr><tr><td class="docs">
+</td><td class="codes"><pre class="brush: clojure">(defn exchange-component [repository ctype entity]
   (let [f (fn [collection]
-            (if ((:matcher collection) (:ctypes entity))
+            (if ((:matcher @collection) (:ctypes @entity))
               (c/exchange-entity collection entity)
-              collection))]
-    (update-in repository [:collections-for-type ctype] #(vec (map f %)))))</pre></td></tr><tr><td class="docs">
-</td><td class="codes"><pre class="brush: clojure">(defn remove-component [repository ctype {:keys [creation-index] :as entity}]
-  (let [;; r1 (assoc-in repository [:entities ] entity)
-        original-ctypes (conj (:ctypes entity) ctype)
+              collection))
+        cft (set (map f (internal-collections-for-type repository ctype)))]
+    (if (empty? cft)
+      repository
+      (assoc-in repository [:collections-for-type ctype] cft))))</pre></td></tr><tr><td class="docs">
+</td><td class="codes"><pre class="brush: clojure">(defn remove-component [repository ctype entity]
+  (let [ctypes (:ctypes @entity)
         f (fn [collection]
-            (if (and ((:matcher collection) original-ctypes)
-                     (not ((:matcher collection) (:ctypes entity))))
+            (if ((:matcher @collection) ctypes)
               (c/remove-entity collection entity)
-              collection))]
-    (update-in repository [:collections-for-type ctype] #(vec (map f %)))))</pre></td></tr><tr><td class="docs"><p>This file autogenerated from src/cljx/entitas_clj/repository.cljx</p>
+              collection))
+        cft (set (map f (internal-collections-for-type repository ctype)))]
+    (if (empty? cft)
+      repository
+      (assoc-in repository [:collections-for-type ctype] cft))))</pre></td></tr><tr><td class="docs">
+</td><td class="codes"><pre class="brush: clojure">(defn remove-entity [repository entity]
+  (let [ctypes (:ctypes @entity)
+        creation-index (:creation-index @entity)
+        r1 (reduce (fn [acc ctype]
+                     (remove-component acc ctype entity)) repository ctypes)]
+    (update-in r1 [:entities] dissoc creation-index)))</pre></td></tr><tr><td class="docs">
+</td><td class="codes"><pre class="brush: clojure">(defn add-entity [{:keys [current-index] :as repository} entity]
+  (swap! entity assoc :creation-index current-index)
+  (let [components (vals (:components @entity))
+        r0 (-&gt; repository
+               (assoc-in ,, [:entities current-index] entity)
+               (update-in ,, [:current-index] inc))]
+    (reduce (fn [acc component]
+              (add-component acc (:type component) entity)) r0 components)))</pre></td></tr><tr><td class="docs"><p>This file autogenerated from src/cljx/entitas_clj/repository.cljx</p>
 </td><td class="codes"></td></tr><tr><td class="spacer docs">&nbsp;</td><td class="codes" /></tr><tr><td class="docs"><div class="docs-header"><a class="anchor" href="#entitas-clj.system" name="entitas-clj.system"><h1 class="project-name">entitas-clj.system</h1><a class="toc-link" href="#toc">toc</a></a></div></td><td class="codes" /></tr><tr><td class="docs">
 </td><td class="codes"><pre class="brush: clojure">(ns entitas-clj.system
-  (:refer-clojure :exclude [remove]))</pre></td></tr><tr><td class="docs">
-</td><td class="codes"><pre class="brush: clojure">(defn new []
-  [])</pre></td></tr><tr><td class="docs">
-</td><td class="codes"><pre class="brush: clojure">(defn new-system []
-  {:active true
+  (:refer-clojure :exclude [remove])
+  (:require       [clojure.core.async :refer [chan go sliding-buffer put! alts!]]))</pre></td></tr><tr><td class="docs"><p>system</p>
+</td><td class="codes"></td></tr><tr><td class="docs">
+</td><td class="codes"><pre class="brush: clojure">(defn create [type execute-fn]
+  {:type type
+   :active true
+   :execute-fn execute-fn
    :activate-fn nil
-   :deactivate-fn nil
-   :execute-fn nil})</pre></td></tr><tr><td class="docs">
+   :deactivate-fn nil})</pre></td></tr><tr><td class="docs"><p>systems</p>
+</td><td class="codes"></td></tr><tr><td class="docs">
+</td><td class="codes"><pre class="brush: clojure">(defn create-systems []
+  [])</pre></td></tr><tr><td class="docs">
 </td><td class="codes"><pre class="brush: clojure">(defn add [systems system]
   (conj systems system))</pre></td></tr><tr><td class="docs">
 </td><td class="codes"><pre class="brush: clojure">(defn contains [systems system]
   (some #{system} systems))</pre></td></tr><tr><td class="docs">
 </td><td class="codes"><pre class="brush: clojure">(defn remove [systems system]
   (vec (clojure.core/remove #{system} systems)))</pre></td></tr><tr><td class="docs">
-</td><td class="codes"><pre class="brush: clojure">(defn execute [systems]
-  (doseq [system systems]
-    ((:execute-fn system))))</pre></td></tr><tr><td class="docs">
+</td><td class="codes"><pre class="brush: clojure">(defn execute [systems repository]
+  (reduce (fn [acc system]
+            ((:execute-fn system) acc)) repository systems))</pre></td></tr><tr><td class="docs">
 </td><td class="codes"><pre class="brush: clojure">(defn activate [systems]
-  (map (fn [system]
-         ((:activate-fn system) system)
-         (assoc system :active true)) systems))</pre></td></tr><tr><td class="docs">
+  (vec (map (fn [system]
+              ((:activate-fn system) system)
+              (assoc system :active true)) systems)))</pre></td></tr><tr><td class="docs">
 </td><td class="codes"><pre class="brush: clojure">(defn deactivate [systems]
-  (map (fn [system]
-         ((:deactivate-fn system) system)
-         (assoc system :active false)) systems))</pre></td></tr><tr><td class="docs">
-</td><td class="codes"><pre class="brush: clojure">(defn remove-all [systems]
-  [])</pre></td></tr><tr><td class="docs"><p>This file autogenerated from src/cljx/entitas_clj/system.cljx</p>
-</td><td class="codes"></td></tr><tr><td class="spacer docs">&nbsp;</td><td class="codes" /></tr><tr><td class="docs"><div class="docs-header"><a class="anchor" href="#entitas-clj.collection" name="entitas-clj.collection"><h1 class="project-name">entitas-clj.collection</h1><a class="toc-link" href="#toc">toc</a></a></div></td><td class="codes" /></tr><tr><td class="docs">
-</td><td class="codes"><pre class="brush: clojure">(ns entitas-clj.collection
-  (:require [entitas-clj.matcher :as m]))</pre></td></tr><tr><td class="docs">
-</td><td class="codes"><pre class="brush: clojure">(defn init-with-matcher [matcher]
-  {:matcher matcher
-   :entities {}
-   :add-observers #{}
-   :remove-observers {}})</pre></td></tr><tr><td class="docs">
-</td><td class="codes"><pre class="brush: clojure">(defn init-with-types [types]
-  (init-with-matcher #(m/all-of-set types %)))</pre></td></tr><tr><td class="docs">
-</td><td class="codes"><pre class="brush: clojure">(defn entities [collection]
-  (:entities collection))</pre></td></tr><tr><td class="docs">
-</td><td class="codes"><pre class="brush: clojure">(defn type-matcher [collection]
-  (:matcher collection))</pre></td></tr><tr><td class="docs"><p>TODO separate notification handling</p>
-</td><td class="codes"><pre class="brush: clojure">(defn notify [observers event-type collection entity]
-  (doseq [observer observers]
-    (observer entity collection)))</pre></td></tr><tr><td class="docs">
-</td><td class="codes"><pre class="brush: clojure">(defn add-entity [collection {:keys [creation-index] :as entity}]
-  (let [path [:entities creation-index]
-        new-collection (if (nil? (get-in collection path))
-                         (assoc-in collection path entity)
-                         collection)]
-    (notify (:add-observers collection) :added collection entity)
-    new-collection))</pre></td></tr><tr><td class="docs">
-</td><td class="codes"><pre class="brush: clojure">(defn exchange-entity [collection {:keys [creation-index] :as entity}]
-  (if (nil? (get-in collection [:entities creation-index]))
-    (add-entity collection entity)
-    (do
-      (notify (:remove-observers collection) :removed collection entity)
-      (notify (:add-observers collection) :added collection entity)
-      collection)))</pre></td></tr><tr><td class="docs">
-</td><td class="codes"><pre class="brush: clojure">(defn remove-entity [collection {:keys [creation-index] :as entity}]
-  (let [path [:entities creation-index]]
-    (if (nil? (get-in collection path))
-      collection
-      (let [new-collection (update-in collection path dissoc creation-index)]
-        (notify (:remove-observers collection) :removed new-collection entity)
-        new-collection))))</pre></td></tr><tr><td class="docs">
-</td><td class="codes"><pre class="brush: clojure">(defn add-observer [collection observer event-type]
-  (let [path (case event-type
-               :added [:add-observers]
-               :removed [:remove-observers])]
-    (update-in collection path conj observer)))</pre></td></tr><tr><td class="docs">
-</td><td class="codes"><pre class="brush: clojure">(defn remove-observer [collection observer event-type]
-  (let [path (case event-type
-               :added [:add-observers]
-               :removed [:remove-observers])]
-    (update-in collection path remove observer)))</pre></td></tr><tr><td class="docs"><p>This file autogenerated from src/cljx/entitas_clj/collection.cljx</p>
-</td><td class="codes"></td></tr><tr><td class="spacer docs">&nbsp;</td><td class="codes" /></tr><tr><td class="docs"><div class="docs-header"><a class="anchor" href="#entitas-clj.core" name="entitas-clj.core"><h1 class="project-name">entitas-clj.core</h1><a class="toc-link" href="#toc">toc</a></a></div></td><td class="codes" /></tr><tr><td class="docs">
-</td><td class="codes"><pre class="brush: clojure">(ns entitas-clj.core
-  (:require [entitas-clj.entity :as e]
-            [entitas-clj.repository :as r]))</pre></td></tr><tr><td class="docs">
-</td><td class="codes"><pre class="brush: clojure">(defn add-component [repository entity component]
-  (let [new-entity (e/add-component entity component)]
-    [(r/add-component repository (:type component) new-entity) new-entity]))</pre></td></tr><tr><td class="docs">
-</td><td class="codes"><pre class="brush: clojure">(defn exchange-component [repository entity component]
-  (let [new-entity (e/exchange-component entity component)]
-    [(r/exchange-component repository (:type component) new-entity) new-entity]))</pre></td></tr><tr><td class="docs">
-</td><td class="codes"><pre class="brush: clojure">(defn remove-component [repository entity ctype]
-  (let [new-entity (e/remove-component-of-type entity ctype)]
-    [(r/remove-component repository ctype new-entity) new-entity]))</pre></td></tr><tr><td class="docs">
-</td><td class="codes"><pre class="brush: clojure">(defn destroy-entity [repository entity]
-  (reduce (fn [[r e] ctype]
-            (remove-component r e ctype)) [repository entity] (:ctypes entity)))</pre></td></tr><tr><td class="docs"><p>This file autogenerated from src/cljx/entitas_clj/core.cljx</p>
-</td><td class="codes"></td></tr><tr><td class="spacer docs">&nbsp;</td><td class="codes" /></tr><tr><td class="docs"><div class="docs-header"><a class="anchor" href="#entitas-clj.entity" name="entitas-clj.entity"><h1 class="project-name">entitas-clj.entity</h1><a class="toc-link" href="#toc">toc</a></a></div></td><td class="codes" /></tr><tr><td class="docs">
-</td><td class="codes"><pre class="brush: clojure">(ns entitas-clj.entity
-  (:require [clojure.set :refer [subset?]]))</pre></td></tr><tr><td class="docs">
-</td><td class="codes"><pre class="brush: clojure">(defn new [id]
-  {:id id
-   :creation-index nil
-   :components {}
-   :ctypes #{}})</pre></td></tr><tr><td class="docs">
-</td><td class="codes"><pre class="brush: clojure">(defn has-component-of-type [entity ctype]
-  (contains? (:ctypes entity) ctype))</pre></td></tr><tr><td class="docs">
-</td><td class="codes"><pre class="brush: clojure">(defn has-components-of-types [entity ctypes]
-  (subset? ctypes (:ctypes entity)))</pre></td></tr><tr><td class="docs">
-</td><td class="codes"><pre class="brush: clojure">(defn component-of-type [entity ctype]
-  (get-in entity [:components ctype]))</pre></td></tr><tr><td class="docs">
-</td><td class="codes"><pre class="brush: clojure">(defn contains-component [entity component]
-  (not (nil? (component-of-type entity (:type component)))))</pre></td></tr><tr><td class="docs">
-</td><td class="codes"><pre class="brush: clojure">(defn- do-add [entity component]
-  (let [ctype (:type component)]
-    (-&gt; entity
-        (update-in ,, [:ctypes] conj ctype)
-        (assoc-in ,, [:components ctype] component))))</pre></td></tr><tr><td class="docs">
-</td><td class="codes"><pre class="brush: clojure">(defn add-component [entity component]
-  (if (not (has-component-of-type entity (:type component)))
-    (do-add entity component)
-    entity))</pre></td></tr><tr><td class="docs">
-</td><td class="codes"><pre class="brush: clojure">(defn exchange-component [entity component]
-  (do-add entity component))</pre></td></tr><tr><td class="docs">
-</td><td class="codes"><pre class="brush: clojure">(defn remove-component-of-type [entity ctype]
-  (if (has-component-of-type entity ctype)
-    (-&gt; entity
-        (update-in ,, [:ctypes] #(set (remove #{ctype} %)))
-        (update-in ,, [:components] #(dissoc % ctype)))
-    entity))</pre></td></tr><tr><td class="docs"><p>This file autogenerated from src/cljx/entitas_clj/entity.cljx</p>
-</td><td class="codes"></td></tr><tr><td class="spacer docs">&nbsp;</td><td class="codes" /></tr><tr><td class="docs"><div class="docs-header"><a class="anchor" href="#entitas-clj.matcher" name="entitas-clj.matcher"><h1 class="project-name">entitas-clj.matcher</h1><a class="toc-link" href="#toc">toc</a></a></div></td><td class="codes" /></tr><tr><td class="docs">
-</td><td class="codes"><pre class="brush: clojure">(ns entitas-clj.matcher
-  (:require [clojure.set :refer [subset? intersection]]))</pre></td></tr><tr><td class="docs">
-</td><td class="codes"><pre class="brush: clojure">(defn all-matching? [a b]
-  (subset? a b))</pre></td></tr><tr><td class="docs">
-</td><td class="codes"><pre class="brush: clojure">(defn any-matching? [a b]
-  (not (= #{} (intersection a b))))</pre></td></tr><tr><td class="docs">
-</td><td class="codes"><pre class="brush: clojure">(defn equal? [a b]
-  (= a b))</pre></td></tr><tr><td class="docs">
-</td><td class="codes"><pre class="brush: clojure">(defn all-of [ctypes-a &amp; ctypes-b]
-  (all-matching? ctypes-a (set ctypes-b)))</pre></td></tr><tr><td class="docs">
-</td><td class="codes"><pre class="brush: clojure">(defn all-of-set [ctypes-a ctypes-b]
-  (all-matching? ctypes-a ctypes-b))</pre></td></tr><tr><td class="docs">
-</td><td class="codes"><pre class="brush: clojure">(defn any-of [ctypes-a &amp; ctypes-b]
-  (any-matching? ctypes-a (set ctypes-b)))</pre></td></tr><tr><td class="docs">
-</td><td class="codes"><pre class="brush: clojure">(defn any-of-set [ctypes-a ctypes-b]
-  (any-matching? ctypes-a ctypes-b))</pre></td></tr><tr><td class="docs">
-</td><td class="codes"><pre class="brush: clojure">(defn just [type-a ctypes-b]
-  (all-matching? #{type-a} ctypes-b))</pre></td></tr><tr><td class="docs">
-</td><td class="codes"><pre class="brush: clojure">(defn to-key [mtype ctypes]
-  (let [safe-ctypes (if (coll? ctypes) ctypes [ctypes])]
-    (hash (apply str mtype safe-ctypes))))</pre></td></tr><tr><td class="docs"><p>This file autogenerated from src/cljx/entitas_clj/matcher.cljx</p>
-</td><td class="codes"></td></tr><tr><td class="spacer docs">&nbsp;</td><td class="codes" /></tr><tr><td class="docs"><div class="docs-header"><a class="anchor" href="#entitas-clj.performance" name="entitas-clj.performance"><h1 class="project-name">entitas-clj.performance</h1><a class="toc-link" href="#toc">toc</a></a></div></td><td class="codes" /></tr><tr><td class="docs">
-</td><td class="codes"><pre class="brush: clojure">(ns entitas-clj.performance
-         (:use-macros [entitas-clj.macros :only [with-time]])
-  (:require [entitas-clj.core :as cr]
-            [entitas-clj.repository :as r]
-            [entitas-clj.entity :as e]
-            [entitas-clj.collection :as c]
-            [entitas-clj.matcher :as m]))</pre></td></tr><tr><td class="docs">
-</td><td class="codes"><pre class="brush: clojure">(def simple-component {:type :foo :a 1 :b 2})
-(def another-simple-component {:type :bar :x 1 :y 2})</pre></td></tr><tr><td class="docs">
-</td><td class="codes"><pre class="brush: clojure">(defn entry-creation-bench [repository num-entities ctype1 ctype2]
-  (reduce (fn [acc i]
-            (let [[new-acc entity] (r/add-entity acc (e/new :foo))]
-              (condp = (mod i 25)
-                0 (first (cr/add-component new-acc entity {:type ctype1}))
-                1 (first (cr/add-component new-acc entity {:type ctype2}))
-                new-acc)))
-          repository (range num-entities)))</pre></td></tr><tr><td class="docs">
-</td><td class="codes"><pre class="brush: clojure">(defn collection-creation-bench [repository ctype]
-  (r/collection-for-types repository #{ctype}))</pre></td></tr><tr><td class="docs">
-</td><td class="codes"><pre class="brush: clojure">(defn getting-all-entities-initially [collection]
-  (let [result (atom nil)]
-    (doseq [n (range 100)]
-      (reset! result (c/entities collection)))
-    @result))</pre></td></tr><tr><td class="docs">
-</td><td class="codes"><pre class="brush: clojure">(defn getting-all-entities-from-repository [repository ctype]
-  (let [result (atom nil)
-        matcher-config {:mtype m/all-of-set :ctypes #{ctype}}]
-    (doseq [n (range 100)]
-      (let [[new-repository entities] (r/entities-for-matcher repository matcher-config)]
-        (reset! result entities)))
-    @result))</pre></td></tr><tr><td class="docs">
-</td><td class="codes"><pre class="brush: clojure">(defn exchange-component-in-all-entities [repository entities]
-  (let [[i result] (reduce (fn [[idx acc] entity]
-                             (let [[r _] (cr/exchange-component acc entity {:type :foo})]
-                               [(inc idx) r])) [0 repository] entities)]
-    (println &quot;exhanged&quot; i &quot;components&quot;)
-    result))</pre></td></tr><tr><td class="docs">
-</td><td class="codes"><pre class="brush: clojure">(defn destroy-all-entities [repository]
-  (reduce (fn [acc entity]
-            (let [[r _] (cr/destroy-entity acc entity)]
-              r)) repository (r/all-entities repository)))</pre></td></tr><tr><td class="docs">
-</td><td class="codes"><pre class="brush: clojure">(defn run-test [entity-count]
-  (let [ctype1 :foo
-        ctype2 :bar
-        r1 (with-time (entry-creation-bench (r/new) entity-count ctype1 ctype2))
-        [r2 c1] (with-time (collection-creation-bench r1 ctype1))
-        c2 (with-time (getting-all-entities-initially c1))
-        c3 (with-time (getting-all-entities-from-repository r2 ctype1))
-        r3 (with-time (exchange-component-in-all-entities r2 (vals c3)))
-        r4 (with-time (destroy-all-entities r3))]
-    nil))</pre></td></tr><tr><td class="docs">
-</td><td class="codes"><pre class="brush: clojure">       (defn ^:export main []
-         (.log js/console &quot;Running benchmarks...&quot;)
-         (run-test 1000000))</pre></td></tr><tr><td class="docs"><p>This file autogenerated from src/cljx/entitas_clj/performance.cljx</p>
-</td><td class="codes"></td></tr><tr><td class="spacer docs">&nbsp;</td><td class="codes" /></tr><tr><td class="docs"><div class="docs-header"><a class="anchor" href="#entitas-clj.repository" name="entitas-clj.repository"><h1 class="project-name">entitas-clj.repository</h1><a class="toc-link" href="#toc">toc</a></a></div></td><td class="codes" /></tr><tr><td class="docs">
-</td><td class="codes"><pre class="brush: clojure">(ns entitas-clj.repository
-  (:require [entitas-clj.entity :as e]
-            [entitas-clj.collection :as c]
-            [entitas-clj.matcher :as m]))</pre></td></tr><tr><td class="docs">
-</td><td class="codes"><pre class="brush: clojure">(defn new []
-  {:entities {}
-   :collections {}
-   :collections-for-type {}
-   :current-index 0})</pre></td></tr><tr><td class="docs">
-</td><td class="codes"><pre class="brush: clojure">(defn all-entities [repository]
-  (vals (:entities repository)))</pre></td></tr><tr><td class="docs">
-</td><td class="codes"><pre class="brush: clojure">(defn add-entity [{:keys [current-index] :as repository} entity]
-  (let [new-entity (assoc entity :creation-index current-index)
-        new-repository (-&gt; repository
-                           (assoc-in ,, [:entities current-index] new-entity)
-                           (update-in ,, [:current-index] inc))]
-    [new-repository new-entity]))</pre></td></tr><tr><td class="docs">
-</td><td class="codes"><pre class="brush: clojure">(defn remove-entity [repository entity]
-  (update-in repository [:entities] dissoc (:creation-index entity)))</pre></td></tr><tr><td class="docs">
-</td><td class="codes"><pre class="brush: clojure">(defn contains-entity [repository entity]
-  (not (nil? (get-in repository [:entities (:creation-index entity)]))))</pre></td></tr><tr><td class="docs">
-</td><td class="codes"><pre class="brush: clojure">(defn internal-collections-for-type [repository ctype]
-  (or (get-in repository [:collections-for-type ctype]) #{}))</pre></td></tr><tr><td class="docs">
-</td><td class="codes"><pre class="brush: clojure">(defn memoize-matcher [repository {:keys [mtype ctypes] :as matcher-config}]
-  (let [matcher #(mtype ctypes %)]
-    (reduce (fn [acc entity]
-              (if (matcher (:ctypes entity))
-                (c/add-entity acc entity)
-                acc))
-            (c/init-with-matcher matcher) (all-entities repository))))</pre></td></tr><tr><td class="docs">
-</td><td class="codes"><pre class="brush: clojure">(defn collection-for-matcher [repository {:keys [mtype ctypes] :as matcher-config}]
-  (let [mkey (m/to-key mtype ctypes)]
-    (let [collection (get-in repository [:collections mkey])]
-      (if (not (nil? collection))
-        [repository collection]
-        (let [mcoll (memoize-matcher repository matcher-config)]
-          [(update-in repository [:collections] assoc mkey mcoll) mcoll])))))</pre></td></tr><tr><td class="docs">
-</td><td class="codes"><pre class="brush: clojure">(defn entities-for-matcher [repository matcher-config]
-  (let [[new-repository collection] (collection-for-matcher repository matcher-config)]
-    [new-repository (c/entities collection)]))</pre></td></tr><tr><td class="docs">
-</td><td class="codes"><pre class="brush: clojure">(defn collection-for-types [repository ctypes]
-  (let [mtype m/all-of-set
-        mkey (m/to-key mtype ctypes)]
-    (collection-for-matcher repository {:mtype mtype :ctypes ctypes})))</pre></td></tr><tr><td class="docs">
-</td><td class="codes"><pre class="brush: clojure">(defn add-component [repository ctype {:keys [creation-index] :as entity}]
-  (let [r1 (assoc-in repository [:entities creation-index] entity)
-        f (fn [collection]
-            (if ((:matcher collection) (:ctypes entity))
-              (c/add-entity collection entity)
-              collection))
-        cft (internal-collections-for-type r1 ctype)
-        f2 (if (= 0 (count cft))
-             (let [m #(m/just ctype %)
-                   c (c/init-with-matcher m)]
-               [(f c)])
-             (vec (map f cft)))]
-    (assoc-in r1 [:collections-for-type ctype] f2)))</pre></td></tr><tr><td class="docs">
-</td><td class="codes"><pre class="brush: clojure">(defn exchange-component [repository ctype {:keys [creation-index] :as entity}]
-  (let [f (fn [collection]
-            (if ((:matcher collection) (:ctypes entity))
-              (c/exchange-entity collection entity)
-              collection))]
-    (update-in repository [:collections-for-type ctype] #(vec (map f %)))))</pre></td></tr><tr><td class="docs">
-</td><td class="codes"><pre class="brush: clojure">(defn remove-component [repository ctype {:keys [creation-index] :as entity}]
-  (let [;; r1 (assoc-in repository [:entities ] entity)
-        original-ctypes (conj (:ctypes entity) ctype)
-        f (fn [collection]
-            (if (and ((:matcher collection) original-ctypes)
-                     (not ((:matcher collection) (:ctypes entity))))
-              (c/remove-entity collection entity)
-              collection))]
-    (update-in repository [:collections-for-type ctype] #(vec (map f %)))))</pre></td></tr><tr><td class="docs"><p>This file autogenerated from src/cljx/entitas_clj/repository.cljx</p>
-</td><td class="codes"></td></tr><tr><td class="spacer docs">&nbsp;</td><td class="codes" /></tr><tr><td class="docs"><div class="docs-header"><a class="anchor" href="#entitas-clj.system" name="entitas-clj.system"><h1 class="project-name">entitas-clj.system</h1><a class="toc-link" href="#toc">toc</a></a></div></td><td class="codes" /></tr><tr><td class="docs">
-</td><td class="codes"><pre class="brush: clojure">(ns entitas-clj.system
-  (:refer-clojure :exclude [remove]))</pre></td></tr><tr><td class="docs">
-</td><td class="codes"><pre class="brush: clojure">(defn new []
-  [])</pre></td></tr><tr><td class="docs">
-</td><td class="codes"><pre class="brush: clojure">(defn new-system []
-  {:active true
-   :activate-fn nil
-   :deactivate-fn nil
-   :execute-fn nil})</pre></td></tr><tr><td class="docs">
-</td><td class="codes"><pre class="brush: clojure">(defn add [systems system]
-  (conj systems system))</pre></td></tr><tr><td class="docs">
-</td><td class="codes"><pre class="brush: clojure">(defn contains [systems system]
-  (some #{system} systems))</pre></td></tr><tr><td class="docs">
-</td><td class="codes"><pre class="brush: clojure">(defn remove [systems system]
-  (vec (clojure.core/remove #{system} systems)))</pre></td></tr><tr><td class="docs">
-</td><td class="codes"><pre class="brush: clojure">(defn execute [systems]
-  (doseq [system systems]
-    ((:execute-fn system))))</pre></td></tr><tr><td class="docs">
-</td><td class="codes"><pre class="brush: clojure">(defn activate [systems]
-  (map (fn [system]
-         ((:activate-fn system) system)
-         (assoc system :active true)) systems))</pre></td></tr><tr><td class="docs">
-</td><td class="codes"><pre class="brush: clojure">(defn deactivate [systems]
-  (map (fn [system]
-         ((:deactivate-fn system) system)
-         (assoc system :active false)) systems))</pre></td></tr><tr><td class="docs">
+  (vec (map (fn [system]
+              ((:deactivate-fn system) system)
+              (assoc system :active false)) systems)))</pre></td></tr><tr><td class="docs">
 </td><td class="codes"><pre class="brush: clojure">(defn remove-all [systems]
   [])</pre></td></tr><tr><td class="docs"><p>This file autogenerated from src/cljx/entitas_clj/system.cljx</p>
 </td><td class="codes"></td></tr><tr><td class="spacer docs">&nbsp;</td><td class="codes" /></tr></table><div class="footer">Generated by <a href="https://github.com/fogus/marginalia">Marginalia</a>.&nbsp;&nbsp;Syntax highlighting provided by Alex Gorbatchev's <a href="http://alexgorbatchev.com/SyntaxHighlighter/">SyntaxHighlighter</a></div><script type="text/javascript">SyntaxHighlighter.defaults['gutter'] = false;
