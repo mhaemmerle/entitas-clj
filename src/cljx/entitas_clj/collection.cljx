@@ -7,7 +7,7 @@
          :matcher matcher
          :entities {}
          :add-observers #{}
-         :remove-observers {}}))
+         :remove-observers #{}}))
 
 (defn init-with-types [ctypes]
   (let [mname "entitas-clj.matcher/all-of-set"
