@@ -22,7 +22,7 @@
 
 (defn notify [observers event-type collection entity]
   (doseq [observer observers]
-    (observer entity collection)))
+    ((:f @observer) observer entity collection event-type)))
 
 (defn do-add [c path entity]
   (if (nil? (get-in c path))
