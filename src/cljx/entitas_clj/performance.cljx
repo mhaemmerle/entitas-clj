@@ -43,7 +43,8 @@
 
 (defn exchange-component-in-all-entities [repository entities]
   (let [[i result] (reduce (fn [[idx acc] entity]
-                             (let [r (cr/exchange-component acc entity (cm/create :foo))]
+                             (let [c (cm/create :foo)
+                                   r (cr/exchange-component acc entity c)]
                                [(inc idx) r])) [0 repository] entities)]
     (println "exhanged" i "components")
     result))
