@@ -67,7 +67,7 @@
         [r2 c1] (with-time (collection-creation-bench r1 ctype1))
         c2 (with-time (getting-all-entities-initially c1))
         c3 (with-time (getting-all-entities-from-repository r2 ctype1))
-        r3 (with-time (exchange-component-in-all-entities r2 (vals c3)))
+        r3 (with-time (exchange-component-in-all-entities r2 c3))
         r4 (with-time (destroy-all-entities r3))]
     nil))
 
