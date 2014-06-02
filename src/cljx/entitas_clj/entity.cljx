@@ -1,5 +1,6 @@
 (ns entitas-clj.entity
-  (:require [clojure.set :refer [subset?]]))
+  (:require [clojure.set :refer [subset?]]
+            [entitas-clj.component :refer [get-type]]))
 
 (defn create [id & comps]
   (let [components (into {} (map (fn [{:keys [type] :as comp}] [type comp]) comps))
@@ -22,17 +23,17 @@
   (:data (component-of-type entity ctype)))
 
 (defn contains-component [entity component]
-  (not (nil? (component-of-type entity (:type component)))))
+  (not (nil? (component-of-type entity (get-type component)))))
 
 (defn- do-add [entity component]
-  (let [ctype (:type component)]
+  (let [ctype (get-type component)]
     (swap! entity #(-> %
                        (update-in ,, [:ctypes] conj ctype)
                        (assoc-in ,, [:components ctype] component))))
   entity)
 
 (defn add-component [entity component]
-  (if (not (has-component-of-type entity (:type component)))
+  (if (not (has-component-of-type entity (get-type component)))
     (do-add entity component)
     entity))
 

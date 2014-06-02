@@ -4,21 +4,22 @@
   (:require [entitas-clj.core :as cr]
             [entitas-clj.repository :as r]
             [entitas-clj.entity :as e]
-            [entitas-clj.component :as cm]
-            [entitas-clj.collection :as c]
+            [entitas-clj.component :as c :refer [get-type]]
+            [entitas-clj.collection :as cl]
             [entitas-clj.matcher :as m]
+            [entitas-clj.macros :refer [defcomponent]]
             ))
 
-(def simple-component {:type :foo :a 1 :b 2})
-(def another-simple-component {:type :bar :x 1 :y 2})
+(defcomponent SomeComponent)
+(defcomponent SomeOtherComponent)
 
-(defn entry-creation-bench [repository num-entities ctype1 ctype2]
+(defn entry-creation-bench [repository num-entities]
   (reduce (fn [acc i]
             (let [entity (e/create :foo)
                   new-acc (r/add-entity acc entity)]
               (condp = (mod i 25)
-                0 (cr/add-component new-acc entity (cm/create ctype1))
-                1 (cr/add-component new-acc entity (cm/create ctype2))
+                0 (cr/add-component new-acc entity (SomeComponent.))
+                1 (cr/add-component new-acc entity (SomeOtherComponent.))
                 new-acc)))
           repository (range num-entities)))
 
@@ -28,7 +29,7 @@
 (defn getting-all-entities-initially [collection]
   (let [result (atom nil)]
     (doseq [n (range 100)]
-      (reset! result (c/entities collection)))
+      (reset! result (cl/entities collection)))
     @result))
 
 (defn getting-all-entities-from-repository [repository ctype]
@@ -43,7 +44,7 @@
 
 (defn exchange-component-in-all-entities [repository entities]
   (let [[i result] (reduce (fn [[idx acc] entity]
-                             (let [c (cm/create :foo)
+                             (let [c (SomeComponent.)
                                    r (cr/exchange-component acc entity c)]
                                [(inc idx) r])) [0 repository] entities)]
     (println "exhanged" i "components")
@@ -61,12 +62,10 @@
        result#)))
 
 (defn run-test [entity-count]
-  (let [ctype1 :foo
-        ctype2 :bar
-        r1 (with-time (entry-creation-bench (r/create) entity-count ctype1 ctype2))
-        [r2 c1] (with-time (collection-creation-bench r1 ctype1))
+  (let [r1 (with-time (entry-creation-bench (r/create) entity-count))
+        [r2 c1] (with-time (collection-creation-bench r1 "entitas-clj.performance.SomeComponent"))
         c2 (with-time (getting-all-entities-initially c1))
-        c3 (with-time (getting-all-entities-from-repository r2 ctype1))
+        c3 (with-time (getting-all-entities-from-repository r2 "entitas-clj.performance.SomeComponent"))
         r3 (with-time (exchange-component-in-all-entities r2 c3))
         r4 (with-time (destroy-all-entities r3))]
     nil))

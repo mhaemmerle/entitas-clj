@@ -1,6 +1,7 @@
 (ns entitas-clj.repository
   (:require [entitas-clj.entity :as e]
-            [entitas-clj.collection :as c]
+            [entitas-clj.component :as c :refer [get-type]]
+            [entitas-clj.collection :as cl]
             [entitas-clj.matcher :as m]))
 
 (defn create []
@@ -23,9 +24,9 @@
         mkey (m/to-key mname ctypes)
         mcoll (reduce (fn [acc entity]
                         (if (matcher (:ctypes @entity))
-                          (c/add-entity acc entity)
+                          (cl/add-entity acc entity)
                           acc))
-                      (c/init-with-matcher matcher mname mkey) (all-entities repository))
+                      (cl/init-with-matcher matcher mname mkey) (all-entities repository))
         r0 (update-in repository [:collections] assoc mkey mcoll)
         r1 (reduce (fn [acc ctype]
                      (let [f (fnil (fn [colls]
@@ -42,7 +43,7 @@
 
 (defn entities-for-matcher [repository matcher-config]
   (let [[new-repository collection] (collection-for-matcher repository matcher-config)]
-    [new-repository (c/entities collection)]))
+    [new-repository (cl/entities collection)]))
 
 (defn collection-for-types [repository ctypes]
   (let [mtype entitas-clj.matcher/all-of-set
@@ -52,7 +53,7 @@
 (defn add-component [repository ctype entity]
   (let [f (fn [collection]
             (if ((:matcher @collection) (:ctypes @entity))
-              (c/add-entity collection entity)
+              (cl/add-entity collection entity)
               collection))
         cft (set (map f (internal-collections-for-type repository ctype)))]
     (if (empty? cft)
@@ -62,7 +63,7 @@
 (defn exchange-component [repository ctype entity]
   (let [f (fn [collection]
             (if ((:matcher @collection) (:ctypes @entity))
-              (c/exchange-entity collection entity)
+              (cl/exchange-entity collection entity)
               collection))
         cft (set (map f (internal-collections-for-type repository ctype)))]
     (if (empty? cft)
@@ -73,7 +74,7 @@
   (let [ctypes (:ctypes @entity)
         f (fn [collection]
             (if ((:matcher @collection) ctypes)
-              (c/remove-entity collection entity)
+              (cl/remove-entity collection entity)
               collection))
         cft (set (map f (internal-collections-for-type repository ctype)))]
     (if (empty? cft)
@@ -94,4 +95,4 @@
                (assoc-in ,, [:entities current-index] entity)
                (update-in ,, [:current-index] inc))]
     (reduce (fn [acc component]
-              (add-component acc (:type component) entity)) r0 components)))
+              (add-component acc (get-type component) entity)) r0 components)))
