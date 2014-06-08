@@ -1,4 +1,6 @@
-(ns entitas-clj.macros)
+(ns entitas-clj.macros
+  (:require [clojure.pprint :refer [pprint]]
+            [camel-snake-kebab :refer [->kebab-case]]))
 
 (defmacro with-time [& body]
   (let [fname (first (flatten body))]
@@ -9,9 +11,12 @@
        result#)))
 
 (defmacro defcomponent [ctype & fields]
-  (let [fq-ctype (str (ns-name *ns*) "." ctype)]
-    `(defrecord ~ctype [~@fields]
-       ~'entitas-clj.component/TypeInfo
-       (~'get-type [~'this] ~fq-ctype))))
+  (let [fq-ctype (str (ns-name *ns*) "." ctype)
+        ctype-string (str (->kebab-case ctype) "-type")]
+    `(do
+       (def ~(symbol ctype-string) ~fq-ctype)
+       (defrecord ~ctype [~@fields]
+         ~'entitas-clj.component/TypeInfo
+         (~'get-type [~'this] ~fq-ctype)))))
 
-;; (clojure.pprint/pprint (macroexpand-1 '(defcomponent Hull)))
+;; (pprint (macroexpand-1 '(defcomponent ShipContainer)))

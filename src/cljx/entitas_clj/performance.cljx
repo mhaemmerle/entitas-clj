@@ -63,9 +63,9 @@
 
 (defn run-test [entity-count]
   (let [r1 (with-time (entry-creation-bench (r/create) entity-count))
-        [r2 c1] (with-time (collection-creation-bench r1 "entitas-clj.performance.SomeComponent"))
+        [r2 c1] (with-time (collection-creation-bench r1 some-component-type))
         c2 (with-time (getting-all-entities-initially c1))
-        c3 (with-time (getting-all-entities-from-repository r2 "entitas-clj.performance.SomeComponent"))
+        c3 (with-time (getting-all-entities-from-repository r2 some-component-type))
         r3 (with-time (exchange-component-in-all-entities r2 c3))
         r4 (with-time (destroy-all-entities r3))]
     nil))

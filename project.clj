@@ -1,6 +1,7 @@
 (defproject entitas-clj "0.1.0-SNAPSHOT"
   :dependencies [[org.clojure/clojure "1.5.1"]
-                 [org.clojure/core.async "0.1.278.0-76b25b-alpha"]]
+                 [org.clojure/core.async "0.1.278.0-76b25b-alpha"]
+                 [camel-snake-kebab "0.1.5"]]
   :profiles {:dev {:plugins [[com.keminglabs/cljx "0.3.2"]
                              [lein-marginalia "0.7.1"]]}}
   :source-paths ["src/clj"]

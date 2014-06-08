@@ -2,12 +2,13 @@
   (:require [clojure.set :refer [subset?]]
             [entitas-clj.component :refer [get-type]]))
 
-(defn create [id & comps]
-  (let [components (into {} (map (fn [{:keys [type] :as comp}] [type comp]) comps))
-        ctypes (set (map :type comps))]
+;; FIXME refactor component mapping fun
+(defn create [id & components]
+  (let [component-map (into {} (map (fn [component] [(get-type component) component]) components))
+        ctypes (set (map get-type components))]
     (atom {:id id
            :creation-index nil
-           :components components
+           :components component-map
            :ctypes ctypes})))
 
 (defn has-component-of-type [entity ctype]
@@ -18,9 +19,6 @@
 
 (defn component-of-type [entity ctype]
   (get-in @entity [:components ctype]))
-
-(defn data-for-component [entity ctype]
-  (:data (component-of-type entity ctype)))
 
 (defn contains-component [entity component]
   (not (nil? (component-of-type entity (get-type component)))))
@@ -46,3 +44,6 @@
                     (update-in a [:ctypes] #(set (remove #{ctype} %)))
                     (update-in a [:components] #(dissoc % ctype)))))
   entity)
+
+(defn remove-component [entity component]
+  (remove-component-of-type entity (get-type component)))
